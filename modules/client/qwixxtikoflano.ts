@@ -63,11 +63,15 @@ class QwixxTikoflano extends Gamegui {
         const cell_number = ["green", "blue"].includes(colors[i]!) ? 14 - x : x;
 
         dojo.place(
-          `<div id="square_${colors[i]}_${cell_number}" class="square" style="left: ${left}px; top: ${top}px; height: ${height}px"></div>`,
+          /*HTML*/ `<div id="square_${colors[i]}_${cell_number}" class="square" style="left: ${left}px; top: ${top}px; height: ${height}px"></div>`,
           `player_board_${this.player_id}`,
-          "first",
         );
       }
+
+      dojo.place(
+        /*HTML*/ `<div id="square_${colors[i]}_lock" class="square lock" style="top: ${top + 5}px;"></div>`,
+        `player_board_${this.player_id}`,
+      );
     }
 
     // Hook up listeners

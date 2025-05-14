@@ -31,8 +31,17 @@
       aspect-ratio: 36 / 37;
       cursor: pointer;
 
+      &.lock {
+        left: 460px;
+        top: 20px;
+        aspect-ratio: 1 / 1;
+        width: 27px;
+        border-radius: 100%;
+      }
+
       &.crossed {
         background-image: url(img/cross.png);
+        background-size: cover;
       }
     }
   }

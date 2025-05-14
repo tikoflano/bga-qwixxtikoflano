@@ -48,8 +48,9 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                 for (var x = 2; x <= 12; x++) {
                     var left = 26 + 39 * (x - 2);
                     var cell_number = ["green", "blue"].includes(colors[i]) ? 14 - x : x;
-                    dojo.place("<div id=\"square_".concat(colors[i], "_").concat(cell_number, "\" class=\"square\" style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"></div>"), "player_board_".concat(this.player_id), "first");
+                    dojo.place("<div id=\"square_".concat(colors[i], "_").concat(cell_number, "\" class=\"square\" style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"></div>"), "player_board_".concat(this.player_id));
                 }
+                dojo.place("<div id=\"square_".concat(colors[i], "_lock\" class=\"square lock\" style=\"top: ").concat(top_1 + 5, "px;\"></div>"), "player_board_".concat(this.player_id));
             }
             dojo.query(".square").connect("click", this, "onSelectSquare");
             this.setupNotifications();

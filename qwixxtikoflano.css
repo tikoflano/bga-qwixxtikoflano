@@ -30,6 +30,14 @@
   aspect-ratio: 36/37;
   cursor: pointer;
 }
+.player_area .player_board .square.lock {
+  left: 460px;
+  top: 20px;
+  aspect-ratio: 1/1;
+  width: 27px;
+  border-radius: 100%;
+}
 .player_area .player_board .square.crossed {
   background-image: url(img/cross.png);
+  background-size: cover;
 }
