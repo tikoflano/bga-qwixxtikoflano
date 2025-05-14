@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const projectName = process.env.BGA_PROJECT_NAME || "mygame";
+const projectName = (process.env.BGA_PROJECT_NAME || "MyGame").toLowerCase();
 
 const config = {
   name: `BGA - ${projectName}`,
@@ -9,7 +9,7 @@ const config = {
   port: 2022,
   username: process.env.BGA_USERNAME || "",
   privateKeyPath: process.env.BGA_PRIVATE_KEY_PATH || "",
-  remotePath: `/${process.env.BGA_PROJECT_NAME || ""}`,
+  remotePath: `/${projectName}`,
   useTempFile: false,
   openSsh: false,
   uploadOnSave: true,

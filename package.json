@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "build": "npx bga-build",
-    "watch": "npx bga-build --watch"
+    "init": "bga-init $BGA_PROJECT_NAME \"$BGA_USERNAME\" modules --typescript --scss",
+    "build": "bga-build",
+    "watch": "bga-build --watch"
   },
   "devDependencies": {
     "@prettier/plugin-php": "^0.22.4",
