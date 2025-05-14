@@ -41,3 +41,103 @@
   background-image: url(img/cross.png);
   background-size: cover;
 }
+
+.die {
+  display: inline-block;
+  background-image: url(img/64_64_dice.jpg);
+  background-size: 600%;
+  background-repeat: no-repeat;
+  aspect-ratio: 1/1;
+  width: 64px;
+  border-radius: 5%; /* looks better with rounded corders */
+}
+.die[data-color=red][data-value="1"] {
+  background-position: 0% 0%;
+}
+.die[data-color=red][data-value="2"] {
+  background-position: 20% 0%;
+}
+.die[data-color=red][data-value="3"] {
+  background-position: 40% 0%;
+}
+.die[data-color=red][data-value="4"] {
+  background-position: 60% 0%;
+}
+.die[data-color=red][data-value="5"] {
+  background-position: 80% 0%;
+}
+.die[data-color=red][data-value="6"] {
+  background-position: 100% 0%;
+}
+.die[data-color=yellow][data-value="1"] {
+  background-position: 0% 20%;
+}
+.die[data-color=yellow][data-value="2"] {
+  background-position: 20% 20%;
+}
+.die[data-color=yellow][data-value="3"] {
+  background-position: 40% 20%;
+}
+.die[data-color=yellow][data-value="4"] {
+  background-position: 60% 20%;
+}
+.die[data-color=yellow][data-value="5"] {
+  background-position: 80% 20%;
+}
+.die[data-color=yellow][data-value="6"] {
+  background-position: 100% 20%;
+}
+.die[data-color=green][data-value="1"] {
+  background-position: 0% 40%;
+}
+.die[data-color=green][data-value="2"] {
+  background-position: 20% 40%;
+}
+.die[data-color=green][data-value="3"] {
+  background-position: 40% 40%;
+}
+.die[data-color=green][data-value="4"] {
+  background-position: 60% 40%;
+}
+.die[data-color=green][data-value="5"] {
+  background-position: 80% 40%;
+}
+.die[data-color=green][data-value="6"] {
+  background-position: 100% 40%;
+}
+.die[data-color=blue][data-value="1"] {
+  background-position: 0% 60%;
+}
+.die[data-color=blue][data-value="2"] {
+  background-position: 20% 60%;
+}
+.die[data-color=blue][data-value="3"] {
+  background-position: 40% 60%;
+}
+.die[data-color=blue][data-value="4"] {
+  background-position: 60% 60%;
+}
+.die[data-color=blue][data-value="5"] {
+  background-position: 80% 60%;
+}
+.die[data-color=blue][data-value="6"] {
+  background-position: 100% 60%;
+}
+.die[data-color=white][data-value="1"] {
+  background-position: 0% 100%;
+}
+.die[data-color=white][data-value="2"] {
+  background-position: 20% 100%;
+}
+.die[data-color=white][data-value="3"] {
+  background-position: 40% 100%;
+}
+.die[data-color=white][data-value="4"] {
+  background-position: 60% 100%;
+}
+.die[data-color=white][data-value="5"] {
+  background-position: 80% 100%;
+}
+.die[data-color=white][data-value="6"] {
+  background-position: 100% 100%;
+}

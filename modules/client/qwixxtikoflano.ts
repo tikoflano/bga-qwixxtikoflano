@@ -19,6 +19,9 @@
 import Gamegui = require("ebg/core/gamegui");
 import "ebg/counter";
 
+type DieColor = "white_1" | "white_2" | "red" | "yellow" | "green" | "blue";
+type DiceValues = Record<DieColor, number>;
+
 /** See {@link BGA.Gamegui} for more information. */
 class QwixxTikoflano extends Gamegui {
   /** See {@link BGA.Gamegui} for more information. */
@@ -31,8 +34,21 @@ class QwixxTikoflano extends Gamegui {
   override setup(gamedatas: BGA.Gamedatas): void {
     console.log("Starting game setup", gamedatas);
 
+    // Set up die tray
+    const die_tray = /*HTML*/ `
+        <div id="die_tray">
+          <span id="die_white_1" class="die" data-value="1" data-color="white"></span>
+          <span id="die_white_2" class="die" data-value="2" data-color="white"></span>
+          <span id="die_red" class="die" data-value="3" data-color="red"></span>
+          <span id="die_yellow" class="die" data-value="4" data-color="yellow"></span>
+          <span id="die_green" class="die" data-value="5" data-color="green"></span>
+          <span id="die_blue" class="die" data-value="6" data-color="blue"></span>
+        </div>
+      `;
+    dojo.place(die_tray, "game_play_area");
+
     // Setting up player boards
-    var player_id: BGA.ID;
+    let player_id: BGA.ID;
     const player_areas = [];
     for (player_id in gamedatas.players) {
       var player = gamedatas.players[player_id];
@@ -93,8 +109,10 @@ class QwixxTikoflano extends Gamegui {
     console.log("Entering state: " + stateName);
 
     switch (stateName) {
-      case "dummmy":
-        // enable/disable any user interaction...
+      case "useWhiteSum":
+        for (const [color, value] of Object.entries(state.args["die"] as DiceValues)) {
+          dojo.byId(`die_${color}`)!.dataset["value"] = `${value}`;
+        }
         break;
     }
   }
@@ -114,12 +132,14 @@ class QwixxTikoflano extends Gamegui {
   override onUpdateActionButtons(...[stateName, args]: BGA.GameStateTuple<["name", "args"]>): void {
     console.log("onUpdateActionButtons: " + stateName, args);
 
-    if (!this.isCurrentPlayerActive()) return;
+    // if (!this.isCurrentPlayerActive()) return;
+    if (this.isSpectator) return;
 
     switch (stateName) {
-      case "dummmy":
-        // Add buttons to action bar...
-        // this.addActionButton( 'button_id', _('Button label'), this.onButtonClicked );
+      case "useWhiteSum":
+        console.log("ARGS", args);
+        this.addActionButton("button_pass", _("Pass"), this.onPass);
+        // enable/disable any user interaction...
         break;
     }
   }
@@ -153,6 +173,10 @@ class QwixxTikoflano extends Gamegui {
     }
 
     dojo.addClass(evt.currentTarget, "crossed");
+  }
+
+  onPass(evt: Event) {
+    alert("PASS");
   }
 
   ///////////////////////////////////////////////////

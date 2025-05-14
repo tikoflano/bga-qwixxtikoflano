@@ -28,6 +28,8 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
         }
         QwixxTikoflano.prototype.setup = function (gamedatas) {
             console.log("Starting game setup", gamedatas);
+            var die_tray = "\n        <div id=\"die_tray\">\n          <span id=\"die_white_1\" class=\"die\" data-value=\"1\" data-color=\"white\"></span>\n          <span id=\"die_white_2\" class=\"die\" data-value=\"2\" data-color=\"white\"></span>\n          <span id=\"die_red\" class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n          <span id=\"die_yellow\" class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n          <span id=\"die_green\" class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n          <span id=\"die_blue\" class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n        </div>\n      ";
+            dojo.place(die_tray, "game_play_area");
             var player_id;
             var player_areas = [];
             for (player_id in gamedatas.players) {
@@ -64,7 +66,11 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
             var stateName = _a[0], state = _a[1];
             console.log("Entering state: " + stateName);
             switch (stateName) {
-                case "dummmy":
+                case "useWhiteSum":
+                    for (var _b = 0, _c = Object.entries(state.args["die"]); _b < _c.length; _b++) {
+                        var _d = _c[_b], color = _d[0], value = _d[1];
+                        dojo.byId("die_".concat(color)).dataset["value"] = "".concat(value);
+                    }
                     break;
             }
         };
@@ -82,10 +88,12 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
             }
             var stateName = _a[0], args = _a[1];
             console.log("onUpdateActionButtons: " + stateName, args);
-            if (!this.isCurrentPlayerActive())
+            if (this.isSpectator)
                 return;
             switch (stateName) {
-                case "dummmy":
+                case "useWhiteSum":
+                    console.log("ARGS", args);
+                    this.addActionButton("button_pass", _("Pass"), this.onPass);
                     break;
             }
         };
@@ -99,6 +107,9 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                 return;
             }
             dojo.addClass(evt.currentTarget, "crossed");
+        };
+        QwixxTikoflano.prototype.onPass = function (evt) {
+            alert("PASS");
         };
         return QwixxTikoflano;
     }(Gamegui));

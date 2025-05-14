@@ -1,8 +1,11 @@
 <?php
+
+require_once "modules/php/constants.inc.php";
+
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * QwixxTikoflano implementation : © <Your name here> <Your email address here>
+ * qwixxtikoflano implementation : © tikoflano
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -10,7 +13,7 @@
  *
  * states.inc.php
  *
- * QwixxTikoflano game states description
+ * qwixxtikoflano game states description
  *
  */
 
@@ -49,55 +52,52 @@
 
 //    !! It is not a good idea to modify this file when a game is running !!
 
-
 $machinestates = [
-
-    // The initial state. Please do not modify.
-
-    1 => array(
+    ST_BGA_GAME_SETUP => [
         "name" => "gameSetup",
-        "description" => "",
+        "description" => clienttranslate("Game setup"),
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => ["" => 2]
-    ),
-
-    // Note: ID=2 => your first state
-
-    2 => [
-        "name" => "playerTurn",
-        "description" => clienttranslate('${actplayer} must play a card or pass'),
-        "descriptionmyturn" => clienttranslate('${you} must play a card or pass'),
-        "type" => "activeplayer",
-        "args" => "argPlayerTurn",
-        "possibleactions" => [
-            // these actions are called from the front with bgaPerformAction, and matched to the function on the game.php file
-            "actPlayCard", 
-            "actPass",
-        ],
-        "transitions" => ["playCard" => 3, "pass" => 3]
+        "transitions" => ["" => ST_USE_WHITE_SUM],
     ],
 
-    3 => [
+    ST_USE_WHITE_SUM => [
+        "name" => "useWhiteSum",
+        "description" => clienttranslate('${actplayer} may check a box based on the white die'),
+        "descriptionmyturn" => clienttranslate('${you} may check a box based on the white die'),
+        "type" => "multipleactiveplayer",
+        "args" => "argUseDie",
+        "possibleactions" => ["actPlayDisc"],
+        "transitions" => [
+            ACT_CHECK_BOX => ST_USE_COLOR_SUM,
+            ACT_PASS => ST_USE_COLOR_SUM,
+            ACT_ZOMBIE_PASS => ST_NEXT_PLAYER,
+        ],
+    ],
+
+    ST_USE_COLOR_SUM => [
+        "name" => "useColorSum",
+        "description" => clienttranslate('${actplayer} may check a box based on the colored die'),
+        "descriptionmyturn" => clienttranslate('${you} may check a box based on the colored die'),
+        "type" => "activeplayer",
+        "args" => "argUseDie",
+        "possibleactions" => ["actPlayDisc"],
+        "transitions" => ["playDisc" => ST_NEXT_PLAYER, ACT_ZOMBIE_PASS => ST_NEXT_PLAYER],
+    ],
+
+    ST_NEXT_PLAYER => [
         "name" => "nextPlayer",
-        "description" => '',
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
-        "transitions" => ["endGame" => 99, "nextPlayer" => 2]
+        "transitions" => ["nextTurn" => ST_USE_WHITE_SUM, "endGame" => ST_END_GAME],
     ],
 
-    // Final state.
-    // Please do not modify (and do not overload action/args methods).
-    99 => [
+    ST_END_GAME => [
         "name" => "gameEnd",
         "description" => clienttranslate("End of game"),
         "type" => "manager",
         "action" => "stGameEnd",
-        "args" => "argGameEnd"
+        "args" => "argGameEnd",
     ],
-
 ];
-
-
-
