@@ -16,103 +16,120 @@
 // Defines the name of this module. Same as putting this code into a file at path: bgagame/qwixxtikoflano.ts
 /// <amd-module name="bgagame/qwixxtikoflano"/>
 
-import Gamegui = require('ebg/core/gamegui');
+import Gamegui = require("ebg/core/gamegui");
 import "ebg/counter";
 
 /** See {@link BGA.Gamegui} for more information. */
-class QwixxTikoflano extends Gamegui
-{
-	// myGlobalValue: number = 0;
-	// myGlobalArray: string[] = [];
+class QwixxTikoflano extends Gamegui {
+  // myGlobalValue: number = 0;
+  // myGlobalArray: string[] = [];
 
-	/** See {@link BGA.Gamegui} for more information. */
-	constructor(){
-		super();
-		console.log('qwixxtikoflano constructor');
-	}
+  /** See {@link BGA.Gamegui} for more information. */
+  constructor() {
+    super();
+    console.log("qwixxtikoflano constructor");
+  }
 
-	/** See {@link  BGA.Gamegui#setup} for more information. */
-	override setup(gamedatas: BGA.Gamedatas): void
-	{
-		console.log( "Starting game setup" );
-		
-		// Setting up player boards
-		var player_id: BGA.ID;
-		for(player_id in gamedatas.players)
-		{
-			var player = gamedatas.players[player_id];
-			// TODO: Setting up players boards if needed
-		}
-		
-		// TODO: Set up your game interface here, according to "gamedatas"
+  /** See {@link  BGA.Gamegui#setup} for more information. */
+  override setup(gamedatas: BGA.Gamedatas): void {
+    console.log("Starting game setup", gamedatas);
 
-		// Setup game notifications to handle (see "setupNotifications" method below)
-		this.setupNotifications();
+    // Setting up player boards
+    var player_id: BGA.ID;
+    const player_areas = [];
+    for (player_id in gamedatas.players) {
+      var player = gamedatas.players[player_id];
+      const player_area_tpl = /*HTML*/ `
+        <div id="player_area_${player_id}" class="player_area">
+          <span class="player_name">${player?.name}</span>
+          <div id="player_board_${player_id}" class="player_board"></div>
+        </div>
+      `;
 
-		console.log( "Ending game setup" );
-	}
+      if (this.player_id == player_id) {
+        player_areas.unshift(player_area_tpl);
+      } else {
+        player_areas.push(player_area_tpl);
+      }
+    }
 
-	///////////////////////////////////////////////////
-	//// Game & client states
-	
-	/** See {@link BGA.Gamegui#onEnteringState} for more information. */
-	override onEnteringState(...[stateName, state]: BGA.GameStateTuple<['name', 'state']>): void
-	{
-		console.log( 'Entering state: ' + stateName );
-		
-		switch( stateName )
-		{
-		case 'dummmy':
-			// enable/disable any user interaction...
-			break;
-		}
-	}
+    player_areas.forEach((pa) => dojo.place(pa, "game_play_area"));
 
-	/** See {@link BGA.Gamegui#onLeavingState} for more information. */
-	override onLeavingState(stateName: BGA.ActiveGameState["name"]): void
-	{
-		console.log( 'Leaving state: ' + stateName );
-		
-		switch( stateName )
-		{
-		case 'dummmy':
-			// enable/disable any user interaction...
-			break;
-		}
-	}
+    // Set up clickeable boxes
+    const width = 36;
+    const top = 15;
+    for (let x = 2; x <= 12; x++) {
+      const left = Math.round((x - 2) * width + 26 + (x - 2) * 3);
 
-	/** See {@link BGA.Gamegui#onUpdateActionButtons} for more information. */
-	override onUpdateActionButtons(...[stateName, args]: BGA.GameStateTuple<['name', 'args']>): void
-	{
-		console.log( 'onUpdateActionButtons: ' + stateName, args );
+      dojo.place(
+        `<div id="square_red_${x}" class="square" style="left: ${left}px; top: ${top}px; width: ${width}px"></div>`,
+        `player_board_${this.player_id}`,
+        "first",
+      );
+    }
 
-		if(!this.isCurrentPlayerActive())
-			return;
+    // TODO: Set up your game interface here, according to "gamedatas"
 
-		switch( stateName )
-		{
-		case 'dummmy':
-			// Add buttons to action bar...
-			// this.addActionButton( 'button_id', _('Button label'), this.onButtonClicked );
-			break;
-		}
-	}
+    // Setup game notifications to handle (see "setupNotifications" method below)
+    this.setupNotifications();
 
-	///////////////////////////////////////////////////
-	//// Utility methods
+    console.log("Ending game setup");
+  }
 
-	///////////////////////////////////////////////////
-	//// Player's action
-	
-	/*
+  ///////////////////////////////////////////////////
+  //// Game & client states
+
+  /** See {@link BGA.Gamegui#onEnteringState} for more information. */
+  override onEnteringState(...[stateName, state]: BGA.GameStateTuple<["name", "state"]>): void {
+    console.log("Entering state: " + stateName);
+
+    switch (stateName) {
+      case "dummmy":
+        // enable/disable any user interaction...
+        break;
+    }
+  }
+
+  /** See {@link BGA.Gamegui#onLeavingState} for more information. */
+  override onLeavingState(stateName: BGA.ActiveGameState["name"]): void {
+    console.log("Leaving state: " + stateName);
+
+    switch (stateName) {
+      case "dummmy":
+        // enable/disable any user interaction...
+        break;
+    }
+  }
+
+  /** See {@link BGA.Gamegui#onUpdateActionButtons} for more information. */
+  override onUpdateActionButtons(...[stateName, args]: BGA.GameStateTuple<["name", "args"]>): void {
+    console.log("onUpdateActionButtons: " + stateName, args);
+
+    if (!this.isCurrentPlayerActive()) return;
+
+    switch (stateName) {
+      case "dummmy":
+        // Add buttons to action bar...
+        // this.addActionButton( 'button_id', _('Button label'), this.onButtonClicked );
+        break;
+    }
+  }
+
+  ///////////////////////////////////////////////////
+  //// Utility methods
+
+  ///////////////////////////////////////////////////
+  //// Player's action
+
+  /*
 		Here, you are defining methods to handle player's action (ex: results of mouse click on game objects).
 		
 		Most of the time, these methods:
 		- check the action is possible at this game state.
 		- make a call to the game server
 	*/
-	
-	/* Example:
+
+  /* Example:
 
 	onButtonClicked( evt: Event )
 	{
@@ -157,32 +174,30 @@ class QwixxTikoflano extends Gamegui
 	}
 
 	*/
-	
 
-	///////////////////////////////////////////////////
-	//// Reaction to cometD notifications
+  ///////////////////////////////////////////////////
+  //// Reaction to cometD notifications
 
-	/** See {@link BGA.Gamegui#setupNotifications} for more information. */
-	override setupNotifications = () =>
-	{
-		console.log( 'notifications subscriptions setup' );
-		
-		// TODO: here, associate your game notifications with local methods
-		
-		// Builtin example...
-		// dojo.subscribe( 'cardPlayed_1', this, "ntf_any" );
-		// dojo.subscribe( 'actionTaken', this, "ntf_actionTaken" );
-		// dojo.subscribe( 'cardPlayed_0', this, "ntf_cardPlayed" );
-		// dojo.subscribe( 'cardPlayed_1', this, "ntf_cardPlayed" );
+  /** See {@link BGA.Gamegui#setupNotifications} for more information. */
+  override setupNotifications = () => {
+    console.log("notifications subscriptions setup");
 
-		//	With CommonMixin from 'cookbook/common'...
-		// this.subscribeNotif( "cardPlayed_1", this.ntf_any );
-		// this.subscribeNotif( "actionTaken", this.ntf_actionTaken );
-		// this.subscribeNotif( "cardPlayed_0", this.ntf_cardPlayed );
-		// this.subscribeNotif( "cardPlayed_1", this.ntf_cardPlayed );
-	}
+    // TODO: here, associate your game notifications with local methods
 
-	/* Example:
+    // Builtin example...
+    // dojo.subscribe( 'cardPlayed_1', this, "ntf_any" );
+    // dojo.subscribe( 'actionTaken', this, "ntf_actionTaken" );
+    // dojo.subscribe( 'cardPlayed_0', this, "ntf_cardPlayed" );
+    // dojo.subscribe( 'cardPlayed_1', this, "ntf_cardPlayed" );
+
+    //	With CommonMixin from 'cookbook/common'...
+    // this.subscribeNotif( "cardPlayed_1", this.ntf_any );
+    // this.subscribeNotif( "actionTaken", this.ntf_actionTaken );
+    // this.subscribeNotif( "cardPlayed_0", this.ntf_cardPlayed );
+    // this.subscribeNotif( "cardPlayed_1", this.ntf_cardPlayed );
+  };
+
+  /* Example:
 
 	ntf_any( notif: BGA.Notif )
 	{
@@ -209,7 +224,6 @@ class QwixxTikoflano extends Gamegui
 
 	*/
 }
-
 
 // The global 'bgagame.qwixxtikoflano' class is instantiated when the page is loaded and used as the Gamegui.
 window.bgagame = { qwixxtikoflano: QwixxTikoflano };

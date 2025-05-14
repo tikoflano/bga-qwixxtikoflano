@@ -21,16 +21,31 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
         function QwixxTikoflano() {
             var _this = _super.call(this) || this;
             _this.setupNotifications = function () {
-                console.log('notifications subscriptions setup');
+                console.log("notifications subscriptions setup");
             };
-            console.log('qwixxtikoflano constructor');
+            console.log("qwixxtikoflano constructor");
             return _this;
         }
         QwixxTikoflano.prototype.setup = function (gamedatas) {
-            console.log("Starting game setup");
+            console.log("Starting game setup", gamedatas);
             var player_id;
+            var player_areas = [];
             for (player_id in gamedatas.players) {
                 var player = gamedatas.players[player_id];
+                var player_area_tpl = "\n        <div id=\"player_area_".concat(player_id, "\" class=\"player_area\">\n          <span class=\"player_name\">").concat(player === null || player === void 0 ? void 0 : player.name, "</span>\n          <div id=\"player_board_").concat(player_id, "\" class=\"player_board\"></div>\n        </div>\n      ");
+                if (this.player_id == player_id) {
+                    player_areas.unshift(player_area_tpl);
+                }
+                else {
+                    player_areas.push(player_area_tpl);
+                }
+            }
+            player_areas.forEach(function (pa) { return dojo.place(pa, "game_play_area"); });
+            var width = 36;
+            var top = 15;
+            for (var x = 2; x <= 12; x++) {
+                var left = Math.round((x - 2) * width + 26 + (x - 2) * 3);
+                dojo.place("<div id=\"square_red_".concat(x, "\" class=\"square\" style=\"left: ").concat(left, "px; top: ").concat(top, "px; width: ").concat(width, "px\"></div>"), "player_board_".concat(this.player_id), "first");
             }
             this.setupNotifications();
             console.log("Ending game setup");
@@ -41,16 +56,16 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                 _a[_i] = arguments[_i];
             }
             var stateName = _a[0], state = _a[1];
-            console.log('Entering state: ' + stateName);
+            console.log("Entering state: " + stateName);
             switch (stateName) {
-                case 'dummmy':
+                case "dummmy":
                     break;
             }
         };
         QwixxTikoflano.prototype.onLeavingState = function (stateName) {
-            console.log('Leaving state: ' + stateName);
+            console.log("Leaving state: " + stateName);
             switch (stateName) {
-                case 'dummmy':
+                case "dummmy":
                     break;
             }
         };
@@ -60,11 +75,11 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                 _a[_i] = arguments[_i];
             }
             var stateName = _a[0], args = _a[1];
-            console.log('onUpdateActionButtons: ' + stateName, args);
+            console.log("onUpdateActionButtons: " + stateName, args);
             if (!this.isCurrentPlayerActive())
                 return;
             switch (stateName) {
-                case 'dummmy':
+                case "dummmy":
                     break;
             }
         };
