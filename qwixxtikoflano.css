@@ -30,3 +30,6 @@
   aspect-ratio: 36/37;
   cursor: pointer;
 }
+.player_area .player_board .square.crossed {
+  background-image: url(img/cross.png);
+}

@@ -21,9 +21,6 @@ import "ebg/counter";
 
 /** See {@link BGA.Gamegui} for more information. */
 class QwixxTikoflano extends Gamegui {
-  // myGlobalValue: number = 0;
-  // myGlobalArray: string[] = [];
-
   /** See {@link BGA.Gamegui} for more information. */
   constructor() {
     super();
@@ -55,18 +52,26 @@ class QwixxTikoflano extends Gamegui {
 
     player_areas.forEach((pa) => dojo.place(pa, "game_play_area"));
 
-    // Set up clickeable boxes
-    const width = 36;
-    const top = 15;
-    for (let x = 2; x <= 12; x++) {
-      const left = Math.round((x - 2) * width + 26 + (x - 2) * 3);
+    // Set up clickable boxes
+    const height = 37;
+    const colors = ["red", "yellow", "green", "blue"];
+    for (let i = 0; i < colors.length; i++) {
+      const top = 15 + (height + 14) * i;
+      for (let x = 2; x <= 12; x++) {
+        const left = 26 + 39 * (x - 2);
 
-      dojo.place(
-        `<div id="square_red_${x}" class="square" style="left: ${left}px; top: ${top}px; width: ${width}px"></div>`,
-        `player_board_${this.player_id}`,
-        "first",
-      );
+        const cell_number = ["green", "blue"].includes(colors[i]!) ? 14 - x : x;
+
+        dojo.place(
+          `<div id="square_${colors[i]}_${cell_number}" class="square" style="left: ${left}px; top: ${top}px; height: ${height}px"></div>`,
+          `player_board_${this.player_id}`,
+          "first",
+        );
+      }
     }
+
+    // Hook up listeners
+    dojo.query<HTMLElement>(".square").connect("click", this, "onSelectSquare");
 
     // TODO: Set up your game interface here, according to "gamedatas"
 
@@ -129,51 +134,22 @@ class QwixxTikoflano extends Gamegui {
 		- make a call to the game server
 	*/
 
-  /* Example:
+  onSelectSquare(evt: Event) {
+    evt.preventDefault();
+    evt.stopPropagation();
 
-	onButtonClicked( evt: Event )
-	{
-		console.log( 'onButtonClicked' );
+    if (!(evt.currentTarget instanceof HTMLElement)) {
+      throw new Error(
+        "evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.",
+      );
+    }
 
-		// Preventing default browser reaction
-		evt.preventDefault();
+    if (evt.currentTarget.classList.contains("crossed")) {
+      return;
+    }
 
-		// Builtin example...
-		if(this.checkAction( 'myAction' ))
-		{
-			this.ajaxcall(
-				`/${this.game_name!}/${this.game_name!}/myAction.html`,
-				{
-					lock: true, 
-					myArgument1: arg1,
-					myArgument2: arg2,
-				},
-				this,
-				function( server_response: unknown ) {
-					// Callback only on success (no error)
-					// (for player actions, this is almost always empty)
-				}, function(error: boolean, errorMessage?: string, errorCode?: number) {
-					// What to do after the server call in anyway (success or failure)
-					// (usually catch unexpected server errors)
-				},
-			);
-		}
-
-		// Builtin example with new BGA wrapper...
-		this.bgaPerformAction( 'myAction', { myArgument1: arg1, myArgument2: arg2 } );
-
-		//	With CommonMixin from 'cookbook/common'...
-		this.ajaxAction(
-			'myAction',
-			{ myArgument1: arg1, myArgument2: arg2 },
-			function(error: boolean, errorMessage?: string, errorCode?: number) {
-				// What to do after the server call in anyway (success or failure)
-				// (usually catch unexpected server errors)
-			}
-		);
-	}
-
-	*/
+    dojo.addClass(evt.currentTarget, "crossed");
+  }
 
   ///////////////////////////////////////////////////
   //// Reaction to cometD notifications

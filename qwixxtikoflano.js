@@ -41,12 +41,17 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                 }
             }
             player_areas.forEach(function (pa) { return dojo.place(pa, "game_play_area"); });
-            var width = 36;
-            var top = 15;
-            for (var x = 2; x <= 12; x++) {
-                var left = Math.round((x - 2) * width + 26 + (x - 2) * 3);
-                dojo.place("<div id=\"square_red_".concat(x, "\" class=\"square\" style=\"left: ").concat(left, "px; top: ").concat(top, "px; width: ").concat(width, "px\"></div>"), "player_board_".concat(this.player_id), "first");
+            var height = 37;
+            var colors = ["red", "yellow", "green", "blue"];
+            for (var i = 0; i < colors.length; i++) {
+                var top_1 = 15 + (height + 14) * i;
+                for (var x = 2; x <= 12; x++) {
+                    var left = 26 + 39 * (x - 2);
+                    var cell_number = ["green", "blue"].includes(colors[i]) ? 14 - x : x;
+                    dojo.place("<div id=\"square_".concat(colors[i], "_").concat(cell_number, "\" class=\"square\" style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"></div>"), "player_board_".concat(this.player_id), "first");
+                }
             }
+            dojo.query(".square").connect("click", this, "onSelectSquare");
             this.setupNotifications();
             console.log("Ending game setup");
         };
@@ -82,6 +87,17 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                 case "dummmy":
                     break;
             }
+        };
+        QwixxTikoflano.prototype.onSelectSquare = function (evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            if (!(evt.currentTarget instanceof HTMLElement)) {
+                throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
+            }
+            if (evt.currentTarget.classList.contains("crossed")) {
+                return;
+            }
+            dojo.addClass(evt.currentTarget, "crossed");
         };
         return QwixxTikoflano;
     }(Gamegui));
