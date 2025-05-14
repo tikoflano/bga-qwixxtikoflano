@@ -131,14 +131,7 @@ class Game extends \Table {
         // Get some values from the current game situation from the database.
 
         return [
-            "die" => [
-                DIE_WHITE_1 => bga_rand(1, 6),
-                DIE_WHITE_2 => bga_rand(1, 6),
-                DIE_RED => bga_rand(1, 6),
-                DIE_YELLOW => bga_rand(1, 6),
-                DIE_GREEN => bga_rand(1, 6),
-                DIE_BLUE => bga_rand(1, 6),
-            ],
+            "die" => self::getDice(),
         ];
     }
 
@@ -289,6 +282,7 @@ class Game extends \Table {
         // $this->initStat("player", "player_teststat1", 0);
 
         // TODO: Setup the initial game situation here.
+        $this->rollDice();
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
@@ -330,5 +324,61 @@ class Game extends \Table {
         }
 
         throw new \feException("Zombie mode not supported at this game state: \"{$state_name}\".");
+    }
+
+    function getDice() {
+        return self::getCollectionFromDB("SELECT color,value FROM dice", true);
+    }
+
+    function rollDice() {
+        $dice = [
+            "dice" => [
+                DIE_WHITE_1 => bga_rand(1, 6),
+                DIE_WHITE_2 => bga_rand(1, 6),
+                DIE_RED => bga_rand(1, 6),
+                DIE_YELLOW => bga_rand(1, 6),
+                DIE_GREEN => bga_rand(1, 6),
+                DIE_BLUE => bga_rand(1, 6),
+            ],
+        ];
+
+        self::DbQuery(
+            "INSERT INTO dice (color,value) VALUES
+                ('" .
+                DIE_WHITE_1 .
+                "', 
+                '" .
+                $dice["dice"][DIE_WHITE_1] .
+                "'),
+                ('" .
+                DIE_WHITE_2 .
+                "', '" .
+                $dice["dice"][DIE_WHITE_2] .
+                "'),
+                ('" .
+                DIE_RED .
+                "', '" .
+                $dice["dice"][DIE_RED] .
+                "'),
+                ('" .
+                DIE_YELLOW .
+                "', '" .
+                $dice["dice"][DIE_YELLOW] .
+                "'),
+                ('" .
+                DIE_GREEN .
+                "', '" .
+                $dice["dice"][DIE_GREEN] .
+                "'),
+                ('" .
+                DIE_BLUE .
+                "', '" .
+                $dice["dice"][DIE_BLUE] .
+                "')
+                ON DUPLICATE KEY UPDATE
+                color=VALUES(color), value=VALUES(value)"
+        );
+
+        return $dice;
     }
 }

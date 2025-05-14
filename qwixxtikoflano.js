@@ -64,7 +64,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                 _a[_i] = arguments[_i];
             }
             var stateName = _a[0], state = _a[1];
-            console.log("Entering state: " + stateName);
+            console.log("Entering state: " + stateName, state);
             switch (stateName) {
                 case "useWhiteSum":
                     for (var _b = 0, _c = Object.entries(state.args["die"]); _b < _c.length; _b++) {

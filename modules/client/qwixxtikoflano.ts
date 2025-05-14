@@ -106,7 +106,7 @@ class QwixxTikoflano extends Gamegui {
 
   /** See {@link BGA.Gamegui#onEnteringState} for more information. */
   override onEnteringState(...[stateName, state]: BGA.GameStateTuple<["name", "state"]>): void {
-    console.log("Entering state: " + stateName);
+    console.log("Entering state: " + stateName, state);
 
     switch (stateName) {
       case "useWhiteSum":
