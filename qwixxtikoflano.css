@@ -24,27 +24,30 @@
   aspect-ratio: 946/480;
   background-size: cover;
 }
-.player_area .player_board .square {
+.player_area .player_board .box {
   position: absolute;
   border-radius: 7px;
   aspect-ratio: 36/37;
+  border: 1px solid cyan;
+}
+.player_area .player_board .box.clickable {
   cursor: pointer;
 }
-.player_area .player_board .square.lock {
+.player_area .player_board .box.lock {
   left: 460px;
   top: 20px;
   aspect-ratio: 1/1;
   width: 27px;
   border-radius: 100%;
 }
-.player_area .player_board .square.crossed {
+.player_area .player_board .box.crossed {
   background-image: url(img/cross.png);
   background-size: cover;
 }
-.player_area .player_board .square.invalid {
+.player_area .player_board .box.invalid {
   cursor: not-allowed;
 }
-.player_area .player_board .square.invalid:not(.crossed) {
+.player_area .player_board .box.invalid:not(.crossed) {
   background-color: white;
   opacity: 0.75;
 }

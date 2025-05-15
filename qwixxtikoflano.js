@@ -13,7 +13,27 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg/counter"], function (require, exports, Gamegui) {
+define("utils", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getPlayerBoard = getPlayerBoard;
+    exports.getBox = getBox;
+    function getPlayerBoard(player_id) {
+        var player_board = dojo.query(".player_area[data-player-id=\"".concat(player_id, "\"] .player_board"))[0];
+        if (!player_board) {
+            throw Error("Player board not found!");
+        }
+        return player_board;
+    }
+    function getBox(palyer_board, color, position) {
+        var box = dojo.query(".box[data-color=\"".concat(color, "\"][data-position=\"").concat(position, "\"]"), palyer_board)[0];
+        if (!box) {
+            throw Error("Box not found!");
+        }
+        return box;
+    }
+});
+define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "utils", "ebg/counter"], function (require, exports, Gamegui, utils_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var QwixxTikoflano = (function (_super) {
@@ -29,32 +49,27 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
         QwixxTikoflano.prototype.setup = function (gamedatas) {
             console.log("Starting game setup", gamedatas);
             var die_tray = "\n        <div id=\"die_tray\">\n          <span id=\"die_white_1\" class=\"die\" data-value=\"1\" data-color=\"white\"></span>\n          <span id=\"die_white_2\" class=\"die\" data-value=\"2\" data-color=\"white\"></span>\n          <span id=\"die_red\" class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n          <span id=\"die_yellow\" class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n          <span id=\"die_green\" class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n          <span id=\"die_blue\" class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n        </div>\n      ";
-            dojo.place(die_tray, "game_play_area");
+            dojo.place(die_tray, "game_play_area", "first");
             var player_id;
-            var player_areas = [];
             for (player_id in gamedatas.players) {
                 var player = gamedatas.players[player_id];
-                var player_area_tpl = "\n        <div id=\"player_area_".concat(player_id, "\" class=\"player_area\">\n          <span class=\"player_name\">").concat(player === null || player === void 0 ? void 0 : player.name, "</span>\n          <div id=\"player_board_").concat(player_id, "\" class=\"player_board\"></div>\n        </div>\n      ");
-                if (this.player_id == player_id) {
-                    player_areas.unshift(player_area_tpl);
-                }
-                else {
-                    player_areas.push(player_area_tpl);
+                var isCurrentPlayer = this.player_id == player_id;
+                var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\">").concat(player === null || player === void 0 ? void 0 : player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
+                dojo.place(player_area_tpl, "game_play_area", isCurrentPlayer ? 2 : "last");
+                var player_board = (0, utils_1.getPlayerBoard)(player_id);
+                var height = 37;
+                var colors = ["red", "yellow", "green", "blue"];
+                for (var i = 0; i < colors.length; i++) {
+                    var top_1 = 15 + (height + 14) * i;
+                    for (var x = 2; x <= 12; x++) {
+                        var left = 26 + 39 * (x - 2);
+                        var cell_number = this.isLTRRow(colors[i]) ? x : 14 - x;
+                        dojo.place("\n              <div\n                class=\"box ".concat(isCurrentPlayer ? "clickable" : "", "\"\n                data-color=\"").concat(colors[i], "\"\n                data-position=\"").concat(x - 2, "\"\n                data-value=\"").concat(cell_number, "\"\n                style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"\n              ></div>\n            "), player_board);
+                    }
+                    dojo.place("<div\n            class=\"box lock\"\n            data-color=\"".concat(colors[i], "\"\n            data-position=\"11\"\n            data-value=\"lock\"\n            style=\"top: ").concat(top_1 + 5, "px;\"\n          ></div>"), player_board);
                 }
             }
-            player_areas.forEach(function (pa) { return dojo.place(pa, "game_play_area"); });
-            var height = 37;
-            var colors = ["red", "yellow", "green", "blue"];
-            for (var i = 0; i < colors.length; i++) {
-                var top_1 = 15 + (height + 14) * i;
-                for (var x = 2; x <= 12; x++) {
-                    var left = 26 + 39 * (x - 2);
-                    var cell_number = this.isLTRRow(colors[i]) ? x : 14 - x;
-                    dojo.place("<div id=\"square_".concat(colors[i], "_").concat(cell_number, "\" class=\"square\" style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"></div>"), "player_board_".concat(this.player_id));
-                }
-                dojo.place("<div id=\"square_".concat(colors[i], "_lock\" class=\"square lock\" style=\"top: ").concat(top_1 + 5, "px;\"></div>"), "player_board_".concat(this.player_id));
-            }
-            dojo.query(".square").connect("click", this, "onCheckBox");
+            dojo.query(".box").connect("click", this, "onCheckBox");
             this.setupNotifications();
             console.log("Ending game setup");
         };
@@ -71,50 +86,31 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ebg
                         var _d = _c[_b], color = _d[0], value = _d[1];
                         dojo.byId("die_".concat(color)).dataset["value"] = "".concat(value);
                     }
-                    var maxCheckedBox = {
-                        red: 0,
-                        yellow: 0,
-                        green: 13,
-                        blue: 13,
+                    var maxCheckedBoxPosition = {
+                        red: -1,
+                        yellow: -1,
+                        green: -1,
+                        blue: -1,
                     };
                     for (var _e = 0, _f = state.args["checkedBoxes"]; _e < _f.length; _e++) {
-                        var dieData = _f[_e];
-                        var dieColor = dieData["color"];
-                        var dieValue = parseInt(dieData["value"]);
-                        var boxSelector = "square_".concat(dieColor, "_").concat(dieValue);
-                        var box = dojo.byId(boxSelector);
-                        if (!box) {
-                            throw Error("Invalid box selector: ".concat(boxSelector));
-                        }
-                        if (this.isLTRRow(dieColor)) {
-                            maxCheckedBox[dieColor] = Math.max(maxCheckedBox[dieColor], dieData["value"]);
-                        }
-                        else {
-                            maxCheckedBox[dieColor] = Math.min(maxCheckedBox[dieColor], dieData["value"]);
+                        var checkedBox = _f[_e];
+                        var box_color = checkedBox["color"];
+                        var box_position = parseInt(checkedBox["position"]);
+                        var box_player_id = checkedBox["player_id"];
+                        var player_board = (0, utils_1.getPlayerBoard)(box_player_id);
+                        var box = (0, utils_1.getBox)(player_board, box_color, box_position);
+                        if (box_player_id == this.player_id) {
+                            maxCheckedBoxPosition[box_color] = Math.max(maxCheckedBoxPosition[box_color], box_position);
                         }
                         dojo.addClass(box, "crossed");
                     }
-                    for (var _g = 0, _h = Object.entries(maxCheckedBox); _g < _h.length; _g++) {
-                        var _j = _h[_g], dieColor = _j[0], maxCheckedBoxValue = _j[1];
-                        if (this.isLTRRow(dieColor)) {
-                            for (var dieValue = 2; dieValue <= maxCheckedBoxValue; dieValue++) {
-                                var boxSelector = "square_".concat(dieColor, "_").concat(dieValue);
-                                var box = dojo.byId(boxSelector);
-                                if (!box) {
-                                    throw Error("Invalid box selector: ".concat(boxSelector));
-                                }
-                                dojo.addClass(box, "invalid");
-                            }
-                        }
-                        else {
-                            for (var dieValue = 12; dieValue >= maxCheckedBoxValue; dieValue--) {
-                                var boxSelector = "square_".concat(dieColor, "_").concat(dieValue);
-                                var box = dojo.byId(boxSelector);
-                                if (!box) {
-                                    throw Error("Invalid box selector: ".concat(boxSelector));
-                                }
-                                dojo.addClass(box, "invalid");
-                            }
+                    console.log("MAX POS", maxCheckedBoxPosition);
+                    var my_player_board = (0, utils_1.getPlayerBoard)(this.player_id);
+                    for (var _g = 0, _h = Object.entries(maxCheckedBoxPosition); _g < _h.length; _g++) {
+                        var _j = _h[_g], row_color = _j[0], max_position = _j[1];
+                        for (var position = 0; position <= max_position; position++) {
+                            var box = (0, utils_1.getBox)(my_player_board, row_color, position);
+                            dojo.addClass(box, "invalid");
                         }
                     }
                     break;

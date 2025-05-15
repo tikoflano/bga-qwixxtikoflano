@@ -40,10 +40,10 @@ CREATE TABLE IF NOT EXISTS `dice` (
 ) ENGINE = InnoDB CHARSET = utf8;
 
 
-CREATE TABLE IF NOT EXISTS `squares` (
-    `color` VARCHAR(10) NOT NULL,
-    `value` TINYINT NOT NULL,
+CREATE TABLE IF NOT EXISTS `checkedboxes` (
     `player_id` INT(10) unsigned NOT NULL,
-    PRIMARY KEY (`player_id`,`color`,`value`),
+    `color` VARCHAR(10) NOT NULL,
+    `position` TINYINT NOT NULL,
+    PRIMARY KEY (`player_id`,`color`,`position`),
     FOREIGN KEY (`player_id`) REFERENCES player(player_id)
 ) ENGINE = InnoDB CHARSET = utf8;

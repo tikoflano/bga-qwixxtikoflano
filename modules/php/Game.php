@@ -22,8 +22,6 @@ require_once APP_GAMEMODULE_PATH . "module/table/table.game.php";
 require_once __DIR__ . "/constants.inc.php";
 
 class Game extends \Table {
-    private static array $CARD_TYPES;
-
     /**
      * Your global variables labels:
      *
@@ -37,37 +35,7 @@ class Game extends \Table {
     public function __construct() {
         parent::__construct();
 
-        $this->initGameStateLabels([
-            "my_first_global_variable" => 10,
-            "my_second_global_variable" => 11,
-            "my_first_game_variant" => 100,
-            "my_second_game_variant" => 101,
-        ]);
-
-        self::$CARD_TYPES = [
-            1 => [
-                "card_name" => clienttranslate("Troll"), // ...
-            ],
-            2 => [
-                "card_name" => clienttranslate("Goblin"), // ...
-            ],
-            // ...
-        ];
-
-        /* example of notification decorator.
-        // automatically complete notification args when needed
-        $this->notify->addDecorator(function(string $message, array $args) {
-            if (isset($args['player_id']) && !isset($args['player_name']) && str_contains($message, '${player_name}')) {
-                $args['player_name'] = $this->getPlayerNameById($args['player_id']);
-            }
-        
-            if (isset($args['card_id']) && !isset($args['card_name']) && str_contains($message, '${card_name}')) {
-                $args['card_name'] = self::$CARD_TYPES[$args['card_id']]['card_name'];
-                $args['i18n'][] = ['card_name'];
-            }
-            
-            return $args;
-        });*/
+        $this->initGameStateLabels([]);
     }
 
     public function actPass(): void {
@@ -238,9 +206,6 @@ class Game extends \Table {
 
         // Init global values with their initial values.
 
-        // Dummy content.
-        $this->setGameStateInitialValue("my_first_global_variable", 0);
-
         // Init game statistics.
         //
         // NOTE: statistics used in this file must be defined in your `stats.inc.php` file.
@@ -355,9 +320,6 @@ class Game extends \Table {
     }
 
     function getCheckedBoxes() {
-        // Active next player
-        $player_id = intval($this->getCurrentPlayerId());
-
-        return self::getObjectListFromDB("SELECT color,value FROM squares WHERE player_id = $player_id");
+        return self::getObjectListFromDB("SELECT * FROM checkedboxes");
     }
 }

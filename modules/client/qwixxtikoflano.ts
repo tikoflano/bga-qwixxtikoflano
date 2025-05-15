@@ -18,6 +18,7 @@
 
 import Gamegui = require("ebg/core/gamegui");
 import "ebg/counter";
+import { getPlayerBoard, getBox } from "./utils";
 
 type RowColor = "red" | "yellow" | "green" | "blue";
 type DieColor = "white_1" | "white_2" | RowColor;
@@ -46,53 +47,62 @@ class QwixxTikoflano extends Gamegui {
           <span id="die_blue" class="die" data-value="6" data-color="blue"></span>
         </div>
       `;
-    dojo.place(die_tray, "game_play_area");
+    dojo.place(die_tray, "game_play_area", "first");
 
     // Setting up player boards
     let player_id: BGA.ID;
-    const player_areas = [];
     for (player_id in gamedatas.players) {
-      var player = gamedatas.players[player_id];
-      const player_area_tpl = /*HTML*/ `
-        <div id="player_area_${player_id}" class="player_area">
+      const player = gamedatas.players[player_id];
+      const isCurrentPlayer = this.player_id == player_id;
+      const player_area_tpl = /* HTML */ `
+        <div class="player_area" data-player-id="${player_id}">
           <span class="player_name">${player?.name}</span>
-          <div id="player_board_${player_id}" class="player_board"></div>
+          <div class="player_board"></div>
         </div>
       `;
 
-      if (this.player_id == player_id) {
-        player_areas.unshift(player_area_tpl);
-      } else {
-        player_areas.push(player_area_tpl);
-      }
-    }
+      dojo.place(player_area_tpl, "game_play_area", isCurrentPlayer ? 2 : "last");
+      const player_board = getPlayerBoard(player_id);
 
-    player_areas.forEach((pa) => dojo.place(pa, "game_play_area"));
+      // Set up boxes
+      const height = 37;
+      const colors = ["red", "yellow", "green", "blue"];
+      for (let i = 0; i < colors.length; i++) {
+        const top = 15 + (height + 14) * i;
+        for (let x = 2; x <= 12; x++) {
+          const left = 26 + 39 * (x - 2);
 
-    // Set up clickable boxes
-    const height = 37;
-    const colors = ["red", "yellow", "green", "blue"];
-    for (let i = 0; i < colors.length; i++) {
-      const top = 15 + (height + 14) * i;
-      for (let x = 2; x <= 12; x++) {
-        const left = 26 + 39 * (x - 2);
+          const cell_number = this.isLTRRow(colors[i]!) ? x : 14 - x;
 
-        const cell_number = this.isLTRRow(colors[i]!) ? x : 14 - x;
+          dojo.place(
+            /* HTML */ `
+              <div
+                class="box ${isCurrentPlayer ? "clickable" : ""}"
+                data-color="${colors[i]}"
+                data-position="${x - 2}"
+                data-value="${cell_number}"
+                style="left: ${left}px; top: ${top}px; height: ${height}px"
+              ></div>
+            `,
+            player_board,
+          );
+        }
 
         dojo.place(
-          /*HTML*/ `<div id="square_${colors[i]}_${cell_number}" class="square" style="left: ${left}px; top: ${top}px; height: ${height}px"></div>`,
-          `player_board_${this.player_id}`,
+          /* HTML */ `<div
+            class="box lock"
+            data-color="${colors[i]}"
+            data-position="11"
+            data-value="lock"
+            style="top: ${top + 5}px;"
+          ></div>`,
+          player_board,
         );
       }
-
-      dojo.place(
-        /*HTML*/ `<div id="square_${colors[i]}_lock" class="square lock" style="top: ${top + 5}px;"></div>`,
-        `player_board_${this.player_id}`,
-      );
     }
 
     // Hook up listeners
-    dojo.query<HTMLElement>(".square").connect("click", this, "onCheckBox");
+    dojo.query<HTMLElement>(".box").connect("click", this, "onCheckBox");
 
     // TODO: Set up your game interface here, according to "gamedatas"
 
@@ -115,55 +125,35 @@ class QwixxTikoflano extends Gamegui {
           dojo.byId(`die_${color}`)!.dataset["value"] = `${value}`;
         }
 
-        const maxCheckedBox: Record<RowColor, number> = {
-          red: 0,
-          yellow: 0,
-          green: 13,
-          blue: 13,
+        const maxCheckedBoxPosition: Record<RowColor, number> = {
+          red: -1,
+          yellow: -1,
+          green: -1,
+          blue: -1,
         };
 
-        for (const dieData of state.args["checkedBoxes"]) {
-          const dieColor: RowColor = dieData["color"];
-          const dieValue: number = parseInt(dieData["value"]);
-          const boxSelector = `square_${dieColor}_${dieValue}`;
-          const box = dojo.byId(boxSelector);
+        for (const checkedBox of state.args["checkedBoxes"]) {
+          const box_color: RowColor = checkedBox["color"];
+          const box_position: number = parseInt(checkedBox["position"]);
+          const box_player_id: BGA.ID = checkedBox["player_id"];
+          const player_board = getPlayerBoard(box_player_id);
+          const box = getBox(player_board, box_color, box_position);
 
-          if (!box) {
-            throw Error(`Invalid box selector: ${boxSelector}`);
-          }
-
-          if (this.isLTRRow(dieColor)) {
-            maxCheckedBox[dieColor] = Math.max(maxCheckedBox[dieColor], dieData["value"]);
-          } else {
-            maxCheckedBox[dieColor] = Math.min(maxCheckedBox[dieColor], dieData["value"]);
+          if (box_player_id == this.player_id) {
+            maxCheckedBoxPosition[box_color] = Math.max(maxCheckedBoxPosition[box_color], box_position);
           }
 
           dojo.addClass(box, "crossed");
         }
 
-        for (const [dieColor, maxCheckedBoxValue] of Object.entries(maxCheckedBox)) {
-          if (this.isLTRRow(dieColor)) {
-            for (let dieValue = 2; dieValue <= maxCheckedBoxValue; dieValue++) {
-              const boxSelector = `square_${dieColor}_${dieValue}`;
-              const box = dojo.byId(boxSelector);
+        console.log("MAX POS", maxCheckedBoxPosition);
 
-              if (!box) {
-                throw Error(`Invalid box selector: ${boxSelector}`);
-              }
+        const my_player_board = getPlayerBoard(this.player_id);
+        for (const [row_color, max_position] of Object.entries(maxCheckedBoxPosition)) {
+          for (let position = 0; position <= max_position; position++) {
+            const box = getBox(my_player_board, row_color, position);
 
-              dojo.addClass(box, "invalid");
-            }
-          } else {
-            for (let dieValue = 12; dieValue >= maxCheckedBoxValue; dieValue--) {
-              const boxSelector = `square_${dieColor}_${dieValue}`;
-              const box = dojo.byId(boxSelector);
-
-              if (!box) {
-                throw Error(`Invalid box selector: ${boxSelector}`);
-              }
-
-              dojo.addClass(box, "invalid");
-            }
+            dojo.addClass(box, "invalid");
           }
         }
 

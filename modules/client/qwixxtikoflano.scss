@@ -25,11 +25,15 @@
     aspect-ratio: 946 / 480;
     background-size: cover;
 
-    .square {
+    .box {
       position: absolute;
       border-radius: 7px;
       aspect-ratio: 36 / 37;
-      cursor: pointer;
+      border: 1px solid cyan;
+
+      &.clickable {
+        cursor: pointer;
+      }
 
       &.lock {
         left: 460px;
