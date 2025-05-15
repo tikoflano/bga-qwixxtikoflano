@@ -10,11 +10,20 @@ const ST_NEXT_PLAYER = 12;
 const ST_END_GAME = 99;
 
 /*
- * Player actions
+ * Transitions
  */
-const ACT_CHECK_BOX = "checkBox";
-const ACT_PASS = "pass";
-const ACT_ZOMBIE_PASS = "zombiePass";
+const TN_CHECK_BOX = "checkBox";
+const TN_PASS = "pass";
+const TN_ZOMBIE_PASS = "zombiePass";
+const TN_NEXT_TURN = "nextTurn";
+const TN_END_GAME = "endGame";
+
+/*
+ * Player Actions
+ */
+
+const ACT_PASS = "actPass";
+const ACT_CHECK_BOX = "actCheckBox";
 
 /*
  * Die colors

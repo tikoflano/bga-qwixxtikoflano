@@ -70,68 +70,36 @@ class Game extends \Table {
         });*/
     }
 
-    /**
-     * Player action, example content.
-     *
-     * In this scenario, each time a player plays a card, this method will be called. This method is called directly
-     * by the action trigger on the front side with `bgaPerformAction`.
-     *
-     * @throws BgaUserException
-     */
-    public function actPlayCard(int $card_id): void {
-        // Retrieve the active player ID.
-        $player_id = (int) $this->getActivePlayerId();
-
-        // check input values
-        $args = $this->argUseDie();
-        $playableCardsIds = $args["playableCardsIds"];
-        if (!in_array($card_id, $playableCardsIds)) {
-            throw new \BgaUserException("Invalid card choice");
-        }
-
-        // Add your game logic to play a card here.
-        $card_name = self::$CARD_TYPES[$card_id]["card_name"];
-
-        // Notify all players about the card played.
-        $this->notify->all("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-            "card_name" => $card_name, // remove this line if you uncomment notification decorator
-            "card_id" => $card_id,
-            "i18n" => ["card_name"], // remove this line if you uncomment notification decorator
-        ]);
-
-        // at the end of the action, move to the next state
-        $this->gamestate->nextState("playCard");
-    }
-
     public function actPass(): void {
-        // Retrieve the active player ID.
-        $player_id = (int) $this->getActivePlayerId();
+        $this->checkAction(ACT_PASS);
 
-        // Notify all players about the choice to pass.
-        $this->notify->all("pass", clienttranslate('${player_name} passes'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-        ]);
+        // Retrieve the current player ID. This is the player who sent a pass action, not the active player.
+        $player_id = (int) $this->getCurrentPlayerId();
+
+        // // Notify all players about the choice to pass.
+        // $this->notify->all("pass", clienttranslate('${player_name} passes'), [
+        //     "player_id" => $player_id,
+        //     "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
+        // ]);
 
         // at the end of the action, move to the next state
-        $this->gamestate->nextState("pass");
+        $this->gamestate->setPlayerNonMultiactive($player_id, TN_PASS);
     }
 
     /**
-     * Game state arguments, example content.
+     * Game state arguments.
      *
-     * This method returns some additional information that is very specific to the `playerTurn` game state.
+     * This method returns some additional information that is specific to the `useWhiteSum` and `useColorSum` game states.
      *
      * @return array
      * @see ./states.inc.php
      */
-    public function argUseDie(): array {
+    public function argUseDice(): array {
         // Get some values from the current game situation from the database.
 
         return [
             "die" => self::getDice(),
+            "checkedBoxes" => self::getCheckedBoxes(),
         ];
     }
 
@@ -384,5 +352,12 @@ class Game extends \Table {
 
     public function stMultiPlayerInit() {
         $this->gamestate->setAllPlayersMultiactive();
+    }
+
+    function getCheckedBoxes() {
+        // Active next player
+        $player_id = intval($this->getCurrentPlayerId());
+
+        return self::getObjectListFromDB("SELECT color,value FROM squares WHERE player_id = $player_id");
     }
 }

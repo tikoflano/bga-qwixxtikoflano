@@ -41,6 +41,13 @@
   background-image: url(img/cross.png);
   background-size: cover;
 }
+.player_area .player_board .square.invalid {
+  cursor: not-allowed;
+}
+.player_area .player_board .square.invalid:not(.crossed) {
+  background-color: white;
+  opacity: 0.75;
+}
 
 .die {
   display: inline-block;

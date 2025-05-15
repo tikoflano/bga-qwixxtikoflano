@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `dice` (
 CREATE TABLE IF NOT EXISTS `squares` (
     `color` VARCHAR(10) NOT NULL,
     `value` TINYINT NOT NULL,
-    `player` INT(10) unsigned NOT NULL,
-    PRIMARY KEY (`player`,`color`,`value`)
+    `player_id` INT(10) unsigned NOT NULL,
+    PRIMARY KEY (`player_id`,`color`,`value`),
+    FOREIGN KEY (`player_id`) REFERENCES player(player_id)
 ) ENGINE = InnoDB CHARSET = utf8;

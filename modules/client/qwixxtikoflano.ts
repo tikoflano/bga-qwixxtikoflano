@@ -19,7 +19,8 @@
 import Gamegui = require("ebg/core/gamegui");
 import "ebg/counter";
 
-type DieColor = "white_1" | "white_2" | "red" | "yellow" | "green" | "blue";
+type RowColor = "red" | "yellow" | "green" | "blue";
+type DieColor = "white_1" | "white_2" | RowColor;
 type DiceValues = Record<DieColor, number>;
 
 /** See {@link BGA.Gamegui} for more information. */
@@ -76,7 +77,7 @@ class QwixxTikoflano extends Gamegui {
       for (let x = 2; x <= 12; x++) {
         const left = 26 + 39 * (x - 2);
 
-        const cell_number = ["green", "blue"].includes(colors[i]!) ? 14 - x : x;
+        const cell_number = this.isLTRRow(colors[i]!) ? x : 14 - x;
 
         dojo.place(
           /*HTML*/ `<div id="square_${colors[i]}_${cell_number}" class="square" style="left: ${left}px; top: ${top}px; height: ${height}px"></div>`,
@@ -91,7 +92,7 @@ class QwixxTikoflano extends Gamegui {
     }
 
     // Hook up listeners
-    dojo.query<HTMLElement>(".square").connect("click", this, "onSelectSquare");
+    dojo.query<HTMLElement>(".square").connect("click", this, "onCheckBox");
 
     // TODO: Set up your game interface here, according to "gamedatas"
 
@@ -113,6 +114,59 @@ class QwixxTikoflano extends Gamegui {
         for (const [color, value] of Object.entries(state.args["die"] as DiceValues)) {
           dojo.byId(`die_${color}`)!.dataset["value"] = `${value}`;
         }
+
+        const maxCheckedBox: Record<RowColor, number> = {
+          red: 0,
+          yellow: 0,
+          green: 13,
+          blue: 13,
+        };
+
+        for (const dieData of state.args["checkedBoxes"]) {
+          const dieColor: RowColor = dieData["color"];
+          const dieValue: number = parseInt(dieData["value"]);
+          const boxSelector = `square_${dieColor}_${dieValue}`;
+          const box = dojo.byId(boxSelector);
+
+          if (!box) {
+            throw Error(`Invalid box selector: ${boxSelector}`);
+          }
+
+          if (this.isLTRRow(dieColor)) {
+            maxCheckedBox[dieColor] = Math.max(maxCheckedBox[dieColor], dieData["value"]);
+          } else {
+            maxCheckedBox[dieColor] = Math.min(maxCheckedBox[dieColor], dieData["value"]);
+          }
+
+          dojo.addClass(box, "crossed");
+        }
+
+        for (const [dieColor, maxCheckedBoxValue] of Object.entries(maxCheckedBox)) {
+          if (this.isLTRRow(dieColor)) {
+            for (let dieValue = 2; dieValue <= maxCheckedBoxValue; dieValue++) {
+              const boxSelector = `square_${dieColor}_${dieValue}`;
+              const box = dojo.byId(boxSelector);
+
+              if (!box) {
+                throw Error(`Invalid box selector: ${boxSelector}`);
+              }
+
+              dojo.addClass(box, "invalid");
+            }
+          } else {
+            for (let dieValue = 12; dieValue >= maxCheckedBoxValue; dieValue--) {
+              const boxSelector = `square_${dieColor}_${dieValue}`;
+              const box = dojo.byId(boxSelector);
+
+              if (!box) {
+                throw Error(`Invalid box selector: ${boxSelector}`);
+              }
+
+              dojo.addClass(box, "invalid");
+            }
+          }
+        }
+
         break;
     }
   }
@@ -132,20 +186,25 @@ class QwixxTikoflano extends Gamegui {
   override onUpdateActionButtons(...[stateName, args]: BGA.GameStateTuple<["name", "args"]>): void {
     console.log("onUpdateActionButtons: " + stateName, args);
 
-    // if (!this.isCurrentPlayerActive()) return;
     if (this.isSpectator) return;
 
     switch (stateName) {
       case "useWhiteSum":
-        console.log("ARGS", args);
-        this.addActionButton("button_pass", _("Pass"), this.onPass);
-        // enable/disable any user interaction...
+        if (this.isCurrentPlayerActive()) {
+          this.addActionButton("button_pass", _("Pass"), this.onPass);
+        } else {
+          this.removeActionButtons();
+        }
         break;
     }
   }
 
   ///////////////////////////////////////////////////
   //// Utility methods
+
+  isLTRRow(color: string) {
+    return ["red", "yellow"].includes(color);
+  }
 
   ///////////////////////////////////////////////////
   //// Player's action
@@ -158,7 +217,7 @@ class QwixxTikoflano extends Gamegui {
 		- make a call to the game server
 	*/
 
-  onSelectSquare(evt: Event) {
+  onCheckBox(evt: Event) {
     evt.preventDefault();
     evt.stopPropagation();
 
@@ -172,11 +231,20 @@ class QwixxTikoflano extends Gamegui {
       return;
     }
 
-    dojo.addClass(evt.currentTarget, "crossed");
+    const [, color, value] = evt.currentTarget.id.split("_");
   }
 
   onPass(evt: Event) {
-    alert("PASS");
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    if (!(evt.currentTarget instanceof HTMLElement)) {
+      throw new Error(
+        "evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.",
+      );
+    }
+
+    this.bgaPerformAction("actPass", {});
   }
 
   ///////////////////////////////////////////////////

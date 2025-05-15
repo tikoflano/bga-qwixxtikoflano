@@ -43,6 +43,15 @@
         background-image: url(img/cross.png);
         background-size: cover;
       }
+
+      &.invalid {
+        cursor: not-allowed;
+      }
+
+      &.invalid:not(.crossed) {
+        background-color: white;
+        opacity: 0.75;
+      }
     }
   }
 }

@@ -67,12 +67,12 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} may check a box based on the white die'),
         "type" => "multipleactiveplayer",
         "action" => "stMultiPlayerInit",
-        "args" => "argUseDie",
-        "possibleactions" => ["actPlayDisc"],
+        "args" => "argUseDice",
+        "possibleactions" => [ACT_PASS, ACT_CHECK_BOX],
         "transitions" => [
-            ACT_CHECK_BOX => ST_USE_COLOR_SUM,
-            ACT_PASS => ST_USE_COLOR_SUM,
-            ACT_ZOMBIE_PASS => ST_NEXT_PLAYER,
+            TN_CHECK_BOX => ST_USE_COLOR_SUM,
+            TN_PASS => ST_USE_COLOR_SUM,
+            TN_ZOMBIE_PASS => ST_NEXT_PLAYER,
         ],
     ],
 
@@ -81,9 +81,12 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} may check a box based on the colored die'),
         "descriptionmyturn" => clienttranslate('${you} may check a box based on the colored die'),
         "type" => "activeplayer",
-        "args" => "argUseDie",
-        "possibleactions" => ["actPlayDisc"],
-        "transitions" => ["playDisc" => ST_NEXT_PLAYER, ACT_ZOMBIE_PASS => ST_NEXT_PLAYER],
+        "args" => "argUseDice",
+        "possibleactions" => [ACT_CHECK_BOX],
+        "transitions" => [
+            TN_CHECK_BOX => ST_NEXT_PLAYER,
+            TN_ZOMBIE_PASS => ST_NEXT_PLAYER,
+        ],
     ],
 
     ST_NEXT_PLAYER => [
@@ -91,7 +94,10 @@ $machinestates = [
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
-        "transitions" => ["nextTurn" => ST_USE_WHITE_SUM, "endGame" => ST_END_GAME],
+        "transitions" => [
+            TN_NEXT_TURN => ST_USE_WHITE_SUM,
+            TN_END_GAME => ST_END_GAME,
+        ],
     ],
 
     ST_END_GAME => [
