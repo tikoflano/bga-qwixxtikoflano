@@ -381,4 +381,8 @@ class Game extends \Table {
 
         return $dice;
     }
+
+    public function stMultiPlayerInit() {
+        $this->gamestate->setAllPlayersMultiactive();
+    }
 }

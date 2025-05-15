@@ -63,9 +63,10 @@ $machinestates = [
 
     ST_USE_WHITE_SUM => [
         "name" => "useWhiteSum",
-        "description" => clienttranslate('${actplayer} may check a box based on the white die'),
+        "description" => clienttranslate("Waiting for other players"),
         "descriptionmyturn" => clienttranslate('${you} may check a box based on the white die'),
         "type" => "multipleactiveplayer",
+        "action" => "stMultiPlayerInit",
         "args" => "argUseDie",
         "possibleactions" => ["actPlayDisc"],
         "transitions" => [
