@@ -99,7 +99,7 @@ export class QwixxTikoflano extends SetupGamegui {
 
       // Set up boxes
       const height = 37;
-      const colors = ["red", "yellow", "green", "blue"];
+      const colors: RowColor[] = ["red", "yellow", "green", "blue"];
       for (let i = 0; i < colors.length; i++) {
         const top = 15 + (height + 14) * i;
         for (let x = 2; x <= 12; x++) {
@@ -194,9 +194,8 @@ export class QwixxTikoflano extends SetupGamegui {
 
         if (state.active_player == this.player_id) {
           for (const [row_color, sum_data] of objectEntries(possible_sums)) {
-            for (const [, sum] of objectEntries(sum_data)) {
-              this.makeBoxClickable(row_color, sum);
-            }
+            const compareFn = isLTRRow(row_color) ? Math.min : Math.max;
+            this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));
           }
         }
 

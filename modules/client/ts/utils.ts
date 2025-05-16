@@ -6,7 +6,7 @@ import { onCheckBox } from "./userActionsHandlers";
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
 
-export function isLTRRow(color: string) {
+export function isLTRRow(color: RowColor) {
   return ["red", "yellow"].includes(color);
 }
 

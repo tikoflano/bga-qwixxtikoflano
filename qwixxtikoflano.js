@@ -204,10 +204,8 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                     if (state.active_player == this.player_id) {
                         for (var _h = 0, _j = (0, utils_2.objectEntries)(possible_sums); _h < _j.length; _h++) {
                             var _k = _j[_h], row_color = _k[0], sum_data = _k[1];
-                            for (var _l = 0, _m = (0, utils_2.objectEntries)(sum_data); _l < _m.length; _l++) {
-                                var _o = _m[_l], sum = _o[1];
-                                this.makeBoxClickable(row_color, sum);
-                            }
+                            var compareFn = (0, utils_2.isLTRRow)(row_color) ? Math.min : Math.max;
+                            this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));
                         }
                     }
                     break;
