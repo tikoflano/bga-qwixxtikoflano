@@ -106,14 +106,14 @@ class Game extends \Table {
     }
 
     public function actCheckBox(string $color, int $position, int $value): void {
-        // Retrieve the current player ID. This is the player who sent the check box action, not the active player.
+        // Retrieve the current player ID. This is the player who sent the check box action
         $player_id = (int) $this->getCurrentPlayerId();
 
         $this->validatePositionValue($color, $position, $value);
         $this->validateValue($color, $value);
         $this->validatePosition($player_id, $color, $position);
 
-        $this->persistCheckedBoxInDB($player_id, $color, $position);
+        $this->persistCheckedBox($player_id, $color, $position);
 
         // Notify all players about the checked box
         $this->notify->all(
@@ -136,18 +136,36 @@ class Game extends \Table {
         }
     }
 
+    public function actCheckPenaltyBox(): void {
+        // Retrieve the current player ID. This is the player who sent the penalty action
+        $player_id = (int) $this->getCurrentPlayerId();
+        $current_penalty_count = $this->getPlayerPenaltyCount($player_id);
+
+        if ($current_penalty_count >= 4) {
+            throw new BgaVisibleSystemException(clienttranslate("penalty count has already reached the limit"));
+        }
+
+        $this->persistPlayerPenalty($player_id);
+
+        // Notify all players about the player penalty check
+        $this->notify->all(NT_PENALTY_BOX_CHECKED, clienttranslate('${player_name} checks a penalty box'), [
+            "player_id" => $player_id,
+            "penalty_count" => $current_penalty_count + 1,
+        ]);
+
+        $this->gamestate->nextState(TN_CHECK_PENALTY_BOX);
+    }
+
     public function actPass(): void {
         // Retrieve the current player ID. This is the player who sent the pass action, not the active player.
         $player_id = (int) $this->getCurrentPlayerId();
 
-        // // Notify all players about the choice to pass.
-        // $this->notify->all("pass", clienttranslate('${player_name} passes'), [
-        //     "player_id" => $player_id,
-        //     "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-        // ]);
+        if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
+            $this->gamestate->setPlayerNonMultiactive($player_id, TN_PASS);
+            return;
+        }
 
-        // at the end of the action, move to the next state
-        $this->gamestate->setPlayerNonMultiactive($player_id, TN_PASS);
+        // TODO: handle passing on color die
     }
 
     /**
@@ -236,7 +254,7 @@ class Game extends \Table {
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb(
-            "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
+            "SELECT `player_id` `id`, `player_score` `score`, `player_penalty_count` `penalty_count` FROM `player`"
         );
 
         // Gather all information about current game situation (visible by player $current_player_id).
@@ -414,13 +432,29 @@ class Game extends \Table {
         return is_null($highest_position) ? -1 : $highest_position;
     }
 
-    function persistCheckedBoxInDB($player_id, $color, $position) {
+    function persistCheckedBox($player_id, $color, $position) {
         $escaped_player_id = self::escapeStringForDB($player_id);
         $escaped_color = self::escapeStringForDB($color);
         $escaped_position = self::escapeStringForDB($position);
 
         self::DbQuery(
             "INSERT INTO checkedboxes (player_id, color, position) VALUES ($escaped_player_id, '$escaped_color', $escaped_position)"
+        );
+    }
+
+    function persistPlayerPenalty($player_id) {
+        $escaped_player_id = self::escapeStringForDB($player_id);
+
+        self::DbQuery(
+            "UPDATE player SET player_penalty_count = player_penalty_count + 1 WHERE player_id = $escaped_player_id"
+        );
+    }
+
+    function getPlayerPenaltyCount($player_id) {
+        $escaped_player_id = self::escapeStringForDB($player_id);
+
+        return self::getUniqueValueFromDB(
+            "SELECT `player_penalty_count` FROM `player` WHERE player_id = $escaped_player_id"
         );
     }
 }

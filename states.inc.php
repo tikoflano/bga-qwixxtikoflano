@@ -80,9 +80,11 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} may check a box based on the colored die'),
         "descriptionmyturn" => clienttranslate('${you} may check a box based on the colored die'),
         "type" => "activeplayer",
-        "possibleactions" => [ACT_CHECK_BOX],
+        "possibleactions" => [ACT_PASS, ACT_CHECK_BOX, ACT_CHECK_PENALTY_BOX],
         "transitions" => [
+            TN_PASS => ST_NEXT_PLAYER,
             TN_CHECK_BOX => ST_NEXT_PLAYER,
+            TN_CHECK_PENALTY_BOX => ST_NEXT_PLAYER,
             TN_ZOMBIE_PASS => ST_NEXT_PLAYER,
         ],
     ],

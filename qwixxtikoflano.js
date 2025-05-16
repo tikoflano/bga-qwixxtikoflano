@@ -17,6 +17,7 @@ define("ts/userActionsHandlers", ["require", "exports"], function (require, expo
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.onCheckBox = onCheckBox;
+    exports.onCheckPenaltyBox = onCheckPenaltyBox;
     exports.onPass = onPass;
     function onCheckBox(evt) {
         evt.preventDefault();
@@ -29,6 +30,17 @@ define("ts/userActionsHandlers", ["require", "exports"], function (require, expo
         }
         var _a = evt.currentTarget.dataset, color = _a.color, position = _a.position, value = _a.value;
         this.bgaPerformAction("actCheckBox", { color: color, position: position, value: value });
+    }
+    function onCheckPenaltyBox(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (!(evt.currentTarget instanceof HTMLElement)) {
+            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
+        }
+        if (!evt.currentTarget.classList.contains("clickable")) {
+            return;
+        }
+        this.bgaPerformAction("actCheckPenaltyBox", {});
     }
     function onPass(evt) {
         evt.preventDefault();
@@ -47,6 +59,7 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
     exports.getBoxBy = getBoxBy;
     exports.getBoxByPosition = getBoxByPosition;
     exports.getBoxByValue = getBoxByValue;
+    exports.getPenaltyBox = getPenaltyBox;
     exports.getDiceSum = getDiceSum;
     exports.objectEntries = objectEntries;
     exports.setDiceFaces = setDiceFaces;
@@ -73,6 +86,14 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
     }
     function getBoxByValue(player_id, color, value) {
         return getBoxBy(player_id, color, value, "value");
+    }
+    function getPenaltyBox(player_id, position) {
+        var player_board = getPlayerBoard(player_id);
+        var penaltyBox = dojo.query(".box.penalty[data-position=\"".concat(position, "\"]"), player_board)[0];
+        if (!penaltyBox) {
+            throw Error("Penalty box not found!");
+        }
+        return penaltyBox;
     }
     function getDiceSum(die1_color, die2_color) {
         var die1 = dojo.byId("die_".concat(die1_color));
@@ -102,6 +123,7 @@ define("ts/notificationsHandlers", ["require", "exports", "ts/utils"], function 
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ntf_boxCheckedHandler = ntf_boxCheckedHandler;
     exports.ntf_diceRolledHandler = ntf_diceRolledHandler;
+    exports.ntf_penaltyBoxChecked = ntf_penaltyBoxChecked;
     function ntf_boxCheckedHandler(notif) {
         this.markCheckedBox(notif.args["player_id"], notif.args["color"], notif.args["position"]);
         this.updateInvalidBoxes();
@@ -111,6 +133,9 @@ define("ts/notificationsHandlers", ["require", "exports", "ts/utils"], function 
     }
     function ntf_diceRolledHandler(notif) {
         (0, utils_1.setDiceFaces)(notif.args["dice"]);
+    }
+    function ntf_penaltyBoxChecked(notif) {
+        this.markCheckedPenaltyBoxes(notif.args["player_id"], notif.args["penalty_count"]);
     }
 });
 define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/utils", "ts/userActionsHandlers", "ts/notificationsHandlers", "ebg/counter"], function (require, exports, Gamegui, utils_2, userActionsHandlers_1, notificationsHandlers_1) {
@@ -133,6 +158,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                 console.log("notifications subscriptions setup");
                 dojo.subscribe("boxChecked", _this, notificationsHandlers_1.ntf_boxCheckedHandler);
                 dojo.subscribe("diceRolled", _this, notificationsHandlers_1.ntf_diceRolledHandler);
+                dojo.subscribe("penaltyBoxChecked", _this, notificationsHandlers_1.ntf_penaltyBoxChecked);
             };
             console.log("qwixxtikoflano constructor");
             return _this;
@@ -145,19 +171,21 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
             for (player_id in gamedatas.players) {
                 var player = gamedatas.players[player_id];
                 var isCurrentPlayer = this.player_id == player_id;
-                var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\">").concat(player === null || player === void 0 ? void 0 : player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
+                var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\">").concat(player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
                 dojo.place(player_area_tpl, "game_play_area", isCurrentPlayer ? 2 : "last");
                 var player_board = (0, utils_2.getPlayerBoard)(player_id);
-                var height = 37;
                 var colors = ["red", "yellow", "green", "blue"];
                 for (var i = 0; i < colors.length; i++) {
-                    var top_1 = 15 + (height + 14) * i;
+                    var top_1 = 15 + 51 * i;
                     for (var x = 2; x <= 12; x++) {
                         var left = 26 + 39 * (x - 2);
                         var cell_number = (0, utils_2.isLTRRow)(colors[i]) ? x : 14 - x;
-                        dojo.place("\n              <div\n                class=\"box\"\n                data-color=\"".concat(colors[i], "\"\n                data-position=\"").concat(x - 2, "\"\n                data-value=\"").concat(cell_number, "\"\n                style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"\n              ></div>\n            "), player_board);
+                        dojo.place("\n              <div\n                class=\"box\"\n                data-color=\"".concat(colors[i], "\"\n                data-position=\"").concat(x - 2, "\"\n                data-value=\"").concat(cell_number, "\"\n                style=\"left: ").concat(left, "px; top: ").concat(top_1, "px;\"\n              ></div>\n            "), player_board);
                     }
                     dojo.place("<div\n            class=\"box lock\"\n            data-color=\"".concat(colors[i], "\"\n            data-position=\"11\"\n            data-value=\"lock\"\n            style=\"top: ").concat(top_1 + 5, "px;\"\n          ></div>"), player_board);
+                }
+                for (var i = 0; i < 4; i++) {
+                    dojo.place("<div class=\"box penalty\" data-position=\"".concat(i, "\" style=\"left: ").concat(387 + 20 * i, "px;\"></div>"), player_board);
                 }
             }
             (0, utils_2.setDiceFaces)(gamedatas["dice"]);
@@ -167,6 +195,10 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                 var box_color = checkedBox["color"];
                 var box_position = parseInt(checkedBox["position"]);
                 this.markCheckedBox(box_player_id, box_color, box_position);
+            }
+            for (player_id in gamedatas.players) {
+                var player_data = gamedatas.players[player_id];
+                this.markCheckedPenaltyBoxes(player_id, player_data["penalty_count"]);
             }
             this.updateInvalidBoxes();
             this.setupNotifications();
@@ -207,6 +239,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                             var compareFn = (0, utils_2.isLTRRow)(row_color) ? Math.min : Math.max;
                             this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));
                         }
+                        this.makeFirstPenaltyBoxClickable();
                     }
                     break;
             }
@@ -248,11 +281,26 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
             dojo.addClass(box, "clickable");
             this.click_connections.push(dojo.connect(box, "click", this, userActionsHandlers_1.onCheckBox));
         };
+        QwixxTikoflano.prototype.makeFirstPenaltyBoxClickable = function () {
+            var player_board = (0, utils_2.getPlayerBoard)(this.player_id);
+            var penaltyBox = dojo.query(".box.penalty:not(.crossed)", player_board)[0];
+            if (!penaltyBox) {
+                throw Error("Penalty box not found!");
+            }
+            dojo.addClass(penaltyBox, "clickable");
+            this.click_connections.push(dojo.connect(penaltyBox, "click", this, userActionsHandlers_1.onCheckPenaltyBox));
+        };
         QwixxTikoflano.prototype.markCheckedBox = function (player_id, color, position) {
             var box = (0, utils_2.getBoxByPosition)(player_id, color, position);
             dojo.addClass(box, "crossed");
             if (player_id == this.player_id) {
                 this.max_checked_box_position[color] = Math.max(this.max_checked_box_position[color], position);
+            }
+        };
+        QwixxTikoflano.prototype.markCheckedPenaltyBoxes = function (player_id, amount) {
+            for (var i = 0; i < amount; i++) {
+                var penaltyBox = (0, utils_2.getPenaltyBox)(player_id, i);
+                dojo.addClass(penaltyBox, "crossed");
             }
         };
         QwixxTikoflano.prototype.updateInvalidBoxes = function () {

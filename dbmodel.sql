@@ -47,3 +47,5 @@ CREATE TABLE IF NOT EXISTS `checkedboxes` (
     PRIMARY KEY (`player_id`,`color`,`position`),
     FOREIGN KEY (`player_id`) REFERENCES player(player_id)
 ) ENGINE = InnoDB CHARSET = utf8;
+
+ALTER TABLE `player` ADD `player_penalty_count` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0;

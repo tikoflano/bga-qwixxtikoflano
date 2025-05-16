@@ -18,12 +18,18 @@
     .box {
       position: absolute;
       border-radius: 7px;
-      aspect-ratio: 36 / 37;
-      // border: 1px solid cyan;
+      height: 38px;
+      width: 38px;
+
+      &.penalty {
+        top: 233px;
+        width: 17px;
+        height: 18px;
+      }
 
       &.clickable {
         cursor: pointer;
-        animation: pulse-animation 0.5s linear infinite alternate;
+        box-shadow: inset 0 0 10px #319eb6;
       }
 
       &.lock {

@@ -8,16 +8,6 @@
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  */
-@keyframes pulse-animation {
-  0% {
-    background-color: #eee;
-    opacity: 0.1;
-  }
-  100% {
-    background-color: #eee;
-    opacity: 0.9;
-  }
-}
 .player_area {
   float: left;
   margin-right: 50px;
@@ -37,11 +27,17 @@
 .player_area .player_board .box {
   position: absolute;
   border-radius: 7px;
-  aspect-ratio: 36/37;
+  height: 38px;
+  width: 38px;
+}
+.player_area .player_board .box.penalty {
+  top: 233px;
+  width: 17px;
+  height: 18px;
 }
 .player_area .player_board .box.clickable {
   cursor: pointer;
-  animation: pulse-animation 0.5s linear infinite alternate;
+  box-shadow: inset 0 0 10px #319eb6;
 }
 .player_area .player_board .box.lock {
   left: 460px;
@@ -157,4 +153,8 @@
 }
 .die[data-color=white][data-value="6"] {
   background-position: 100% 100%;
+}
+
+.debug {
+  border: 1px solid cyan;
 }

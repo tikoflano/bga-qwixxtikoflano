@@ -42,6 +42,17 @@ export function getBoxByValue(player_id: BGA.ID, color: RowColor, value: number)
   return getBoxBy(player_id, color, value, "value");
 }
 
+export function getPenaltyBox(player_id: BGA.ID, position: number) {
+  const player_board = getPlayerBoard(player_id);
+  const penaltyBox = dojo.query<HTMLElement>(`.box.penalty[data-position="${position}"]`, player_board)[0];
+
+  if (!penaltyBox) {
+    throw Error("Penalty box not found!");
+  }
+
+  return penaltyBox;
+}
+
 export function getDiceSum(die1_color: DieColor, die2_color: DieColor) {
   const die1 = dojo.byId(`die_${die1_color}`);
   const die2 = dojo.byId(`die_${die2_color}`);

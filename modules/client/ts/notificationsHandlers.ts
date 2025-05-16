@@ -13,3 +13,7 @@ export function ntf_boxCheckedHandler(this: QwixxTikoflano, notif: BGA.Notif) {
 export function ntf_diceRolledHandler(this: QwixxTikoflano, notif: BGA.Notif) {
   setDiceFaces(notif.args!["dice"]);
 }
+
+export function ntf_penaltyBoxChecked(this: QwixxTikoflano, notif: BGA.Notif) {
+  this.markCheckedPenaltyBoxes(notif.args!["player_id"], notif.args!["penalty_count"]);
+}

@@ -19,6 +19,7 @@ const ST_END_GAME_NAME = "gameEnd";
  * Transitions
  */
 const TN_CHECK_BOX = "checkBox";
+const TN_CHECK_PENALTY_BOX = "checkPenaltyBox";
 const TN_PASS = "pass";
 const TN_ZOMBIE_PASS = "zombiePass";
 const TN_NEXT_TURN = "nextTurn";
@@ -30,6 +31,7 @@ const TN_END_GAME = "endGame";
 
 const ACT_PASS = "actPass";
 const ACT_CHECK_BOX = "actCheckBox";
+const ACT_CHECK_PENALTY_BOX = "actCheckPenaltyBox";
 
 /*
  * Die colors
@@ -45,4 +47,6 @@ const DIE_BLUE = "blue";
  * Notifications
  */
 const NT_BOX_CHECKED = "boxChecked";
+const NT_PENALTY_BOX_CHECKED = "penaltyBoxChecked";
 const NT_DICE_ROLLED = "diceRolled";
+const NT_PASS = "pass";

@@ -26,15 +26,25 @@ import {
   objectEntries,
   setDiceFaces,
   getBoxByValue,
+  getPenaltyBox,
 } from "./ts/utils";
-import { onCheckBox, onPass } from "./ts/userActionsHandlers";
-import { ntf_boxCheckedHandler, ntf_diceRolledHandler } from "./ts/notificationsHandlers";
+import { onCheckBox, onCheckPenaltyBox, onPass } from "./ts/userActionsHandlers";
+import { ntf_boxCheckedHandler, ntf_diceRolledHandler, ntf_penaltyBoxChecked } from "./ts/notificationsHandlers";
 
 export type RowColor = "red" | "yellow" | "green" | "blue";
 export type WhiteDice = "white_1" | "white_2";
 export type DieColor = WhiteDice | RowColor;
 export type DiceValues = Record<DieColor, number>;
 type RowValues = Record<RowColor, number>;
+type NumberMap = {
+  [key in RowColor]: {
+    [key in WhiteDice]: number;
+  };
+};
+
+interface PlayerData extends BGA.GamePlayer {
+  penalty_count: number;
+}
 
 // Typescript casting, which results in no impact.
 const SetupGamegui = Gamegui as DojoJS.DojoClassFrom<
@@ -85,11 +95,11 @@ export class QwixxTikoflano extends SetupGamegui {
     // Setting up player boards
     let player_id: BGA.ID;
     for (player_id in gamedatas.players) {
-      const player = gamedatas.players[player_id];
+      const player = gamedatas.players[player_id]!;
       const isCurrentPlayer = this.player_id == player_id;
       const player_area_tpl = /* HTML */ `
         <div class="player_area" data-player-id="${player_id}">
-          <span class="player_name">${player?.name}</span>
+          <span class="player_name">${player.name}</span>
           <div class="player_board"></div>
         </div>
       `;
@@ -98,10 +108,9 @@ export class QwixxTikoflano extends SetupGamegui {
       const player_board = getPlayerBoard(player_id);
 
       // Set up boxes
-      const height = 37;
       const colors: RowColor[] = ["red", "yellow", "green", "blue"];
       for (let i = 0; i < colors.length; i++) {
-        const top = 15 + (height + 14) * i;
+        const top = 15 + 51 * i;
         for (let x = 2; x <= 12; x++) {
           const left = 26 + 39 * (x - 2);
 
@@ -114,7 +123,7 @@ export class QwixxTikoflano extends SetupGamegui {
                 data-color="${colors[i]}"
                 data-position="${x - 2}"
                 data-value="${cell_number}"
-                style="left: ${left}px; top: ${top}px; height: ${height}px"
+                style="left: ${left}px; top: ${top}px;"
               ></div>
             `,
             player_board,
@@ -132,6 +141,14 @@ export class QwixxTikoflano extends SetupGamegui {
           player_board,
         );
       }
+
+      // Add penalty boxes
+      for (let i = 0; i < 4; i++) {
+        dojo.place(
+          /* HTML */ `<div class="box penalty" data-position="${i}" style="left: ${387 + 20 * i}px;"></div>`,
+          player_board,
+        );
+      }
     }
 
     // TODO: Set up your game interface here, according to "gamedatas"
@@ -145,6 +162,12 @@ export class QwixxTikoflano extends SetupGamegui {
       const box_position: number = parseInt(checkedBox["position"]);
 
       this.markCheckedBox(box_player_id, box_color, box_position);
+    }
+
+    // Mark penalty boxes
+    for (player_id in gamedatas.players) {
+      const player_data = gamedatas.players[player_id] as PlayerData;
+      this.markCheckedPenaltyBoxes(player_id, player_data["penalty_count"]);
     }
 
     // Mark invalid box
@@ -173,12 +196,6 @@ export class QwixxTikoflano extends SetupGamegui {
         break;
       case "useColorSum":
         // Mark clickable boxes
-        type NumberMap = {
-          [key in RowColor]: {
-            [key in WhiteDice]: number;
-          };
-        };
-
         const possible_sums: NumberMap = {
           red: { white_1: -1, white_2: -1 },
           yellow: { white_1: -1, white_2: -1 },
@@ -192,11 +209,13 @@ export class QwixxTikoflano extends SetupGamegui {
           }
         }
 
+        // Make boxes clickable for the active player
         if (state.active_player == this.player_id) {
           for (const [row_color, sum_data] of objectEntries(possible_sums)) {
             const compareFn = isLTRRow(row_color) ? Math.min : Math.max;
             this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));
           }
+          this.makeFirstPenaltyBoxClickable();
         }
 
         break;
@@ -246,12 +265,31 @@ export class QwixxTikoflano extends SetupGamegui {
     this.click_connections.push(dojo.connect(box, "click", this, onCheckBox));
   }
 
+  makeFirstPenaltyBoxClickable() {
+    const player_board = getPlayerBoard(this.player_id);
+    const penaltyBox = dojo.query<HTMLElement>(`.box.penalty:not(.crossed)`, player_board)[0];
+
+    if (!penaltyBox) {
+      throw Error("Penalty box not found!");
+    }
+
+    dojo.addClass(penaltyBox, "clickable");
+    this.click_connections.push(dojo.connect(penaltyBox, "click", this, onCheckPenaltyBox));
+  }
+
   markCheckedBox(player_id: BGA.ID, color: RowColor, position: number) {
     const box = getBoxByPosition(player_id, color, position);
     dojo.addClass(box, "crossed");
 
     if (player_id == this.player_id) {
       this.max_checked_box_position[color] = Math.max(this.max_checked_box_position[color], position);
+    }
+  }
+
+  markCheckedPenaltyBoxes(player_id: BGA.ID, amount: number) {
+    for (let i = 0; i < amount; i++) {
+      const penaltyBox = getPenaltyBox(player_id, i);
+      dojo.addClass(penaltyBox, "crossed");
     }
   }
 
@@ -289,9 +327,10 @@ export class QwixxTikoflano extends SetupGamegui {
     console.log("notifications subscriptions setup");
 
     // REF: https://en.doc.boardgamearena.com/Game_interface_logic:_yourgamename.js#Ignoring_notifications
-    // this.notifqueue.setIgnoreNotificationCheck("checkBox", (notif) => notif.args.player_id == this.player_id);
+    // this.notifqueue.setIgnoreNotificationCheck("boxChecked", (notif) => notif.args.player_id == this.player_id);
     dojo.subscribe("boxChecked", this, ntf_boxCheckedHandler);
     dojo.subscribe("diceRolled", this, ntf_diceRolledHandler);
+    dojo.subscribe("penaltyBoxChecked", this, ntf_penaltyBoxChecked);
   };
 }
 
