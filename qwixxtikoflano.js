@@ -16,8 +16,15 @@ var __extends = (this && this.__extends) || (function () {
 define("utils", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.isLTRRow = isLTRRow;
     exports.getPlayerBoard = getPlayerBoard;
-    exports.getBox = getBox;
+    exports.getBoxByPosition = getBoxByPosition;
+    exports.getBoxByValue = getBoxByValue;
+    exports.getDiceSum = getDiceSum;
+    exports.objectEntries = objectEntries;
+    function isLTRRow(color) {
+        return ["red", "yellow"].includes(color);
+    }
     function getPlayerBoard(player_id) {
         var player_board = dojo.query(".player_area[data-player-id=\"".concat(player_id, "\"] .player_board"))[0];
         if (!player_board) {
@@ -25,17 +32,67 @@ define("utils", ["require", "exports"], function (require, exports) {
         }
         return player_board;
     }
-    function getBox(palyer_board, color, position) {
-        var box = dojo.query(".box[data-color=\"".concat(color, "\"][data-position=\"").concat(position, "\"]"), palyer_board)[0];
+    function getBoxBy(palyer_board, color, value, data_attribute) {
+        var box = dojo.query(".box[data-color=\"".concat(color, "\"][data-").concat(data_attribute, "=\"").concat(value, "\"]"), palyer_board)[0];
         if (!box) {
             throw Error("Box not found!");
         }
         return box;
     }
+    function getBoxByPosition(palyer_board, color, position) {
+        return getBoxBy(palyer_board, color, position, "position");
+    }
+    function getBoxByValue(palyer_board, color, value) {
+        return getBoxBy(palyer_board, color, value, "value");
+    }
+    function getDiceSum(die1_color, die2_color) {
+        var die1 = dojo.byId("die_".concat(die1_color));
+        var die2 = dojo.byId("die_".concat(die2_color));
+        if (!die1 || !die2) {
+            throw Error("Die not found!");
+        }
+        var value1 = die1.dataset["value"];
+        var value2 = die2.dataset["value"];
+        if (!value1 || !value2) {
+            throw Error("Die value not found");
+        }
+        return parseInt(value1) + parseInt(value2);
+    }
+    function objectEntries(obj) {
+        return Object.entries(obj);
+    }
 });
-define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "utils", "ebg/counter"], function (require, exports, Gamegui, utils_1) {
+define("listeners", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.onCheckBox = onCheckBox;
+    exports.onPass = onPass;
+    function onCheckBox(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (!(evt.currentTarget instanceof HTMLElement)) {
+            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
+        }
+        if (!evt.currentTarget.classList.contains("clickable")) {
+            return;
+        }
+        var _a = evt.currentTarget.dataset, color = _a.color, position = _a.position, value = _a.value;
+        console.log("CLICK", { color: color, position: position, value: value });
+        this.bgaPerformAction("actCheckBox", { color: color, position: position, value: value });
+    }
+    function onPass(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (!(evt.currentTarget instanceof HTMLElement)) {
+            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
+        }
+        this.bgaPerformAction("actPass", {});
+    }
+});
+define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "utils", "listeners", "ebg/counter"], function (require, exports, Gamegui, utils_1, listeners_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.QwixxTikoflano = void 0;
     var QwixxTikoflano = (function (_super) {
         __extends(QwixxTikoflano, _super);
         function QwixxTikoflano() {
@@ -63,13 +120,12 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "uti
                     var top_1 = 15 + (height + 14) * i;
                     for (var x = 2; x <= 12; x++) {
                         var left = 26 + 39 * (x - 2);
-                        var cell_number = this.isLTRRow(colors[i]) ? x : 14 - x;
-                        dojo.place("\n              <div\n                class=\"box ".concat(isCurrentPlayer ? "clickable" : "", "\"\n                data-color=\"").concat(colors[i], "\"\n                data-position=\"").concat(x - 2, "\"\n                data-value=\"").concat(cell_number, "\"\n                style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"\n              ></div>\n            "), player_board);
+                        var cell_number = (0, utils_1.isLTRRow)(colors[i]) ? x : 14 - x;
+                        dojo.place("\n              <div\n                class=\"box\"\n                data-color=\"".concat(colors[i], "\"\n                data-position=\"").concat(x - 2, "\"\n                data-value=\"").concat(cell_number, "\"\n                style=\"left: ").concat(left, "px; top: ").concat(top_1, "px; height: ").concat(height, "px\"\n              ></div>\n            "), player_board);
                     }
                     dojo.place("<div\n            class=\"box lock\"\n            data-color=\"".concat(colors[i], "\"\n            data-position=\"11\"\n            data-value=\"lock\"\n            style=\"top: ").concat(top_1 + 5, "px;\"\n          ></div>"), player_board);
                 }
             }
-            dojo.query(".box").connect("click", this, "onCheckBox");
             this.setupNotifications();
             console.log("Ending game setup");
         };
@@ -98,19 +154,27 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "uti
                         var box_position = parseInt(checkedBox["position"]);
                         var box_player_id = checkedBox["player_id"];
                         var player_board = (0, utils_1.getPlayerBoard)(box_player_id);
-                        var box = (0, utils_1.getBox)(player_board, box_color, box_position);
+                        var box = (0, utils_1.getBoxByPosition)(player_board, box_color, box_position);
                         if (box_player_id == this.player_id) {
                             maxCheckedBoxPosition[box_color] = Math.max(maxCheckedBoxPosition[box_color], box_position);
                         }
                         dojo.addClass(box, "crossed");
                     }
-                    console.log("MAX POS", maxCheckedBoxPosition);
                     var my_player_board = (0, utils_1.getPlayerBoard)(this.player_id);
-                    for (var _g = 0, _h = Object.entries(maxCheckedBoxPosition); _g < _h.length; _g++) {
+                    for (var _g = 0, _h = (0, utils_1.objectEntries)(maxCheckedBoxPosition); _g < _h.length; _g++) {
                         var _j = _h[_g], row_color = _j[0], max_position = _j[1];
                         for (var position = 0; position <= max_position; position++) {
-                            var box = (0, utils_1.getBox)(my_player_board, row_color, position);
+                            var box = (0, utils_1.getBoxByPosition)(my_player_board, row_color, position);
                             dojo.addClass(box, "invalid");
+                        }
+                    }
+                    var white_dice_sum = (0, utils_1.getDiceSum)("white_1", "white_2");
+                    for (var _k = 0, _l = (0, utils_1.objectEntries)(maxCheckedBoxPosition); _k < _l.length; _k++) {
+                        var row_color = _l[_k][0];
+                        var box = (0, utils_1.getBoxByValue)(my_player_board, row_color, white_dice_sum);
+                        if (!box.classList.contains("invalid")) {
+                            dojo.addClass(box, "clickable");
+                            dojo.connect(box, "click", this, listeners_1.onCheckBox);
                         }
                     }
                     break;
@@ -135,7 +199,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "uti
             switch (stateName) {
                 case "useWhiteSum":
                     if (this.isCurrentPlayerActive()) {
-                        this.addActionButton("button_pass", _("Pass"), this.onPass);
+                        this.addActionButton("button_pass", _("Pass"), listeners_1.onPass);
                     }
                     else {
                         this.removeActionButtons();
@@ -143,29 +207,8 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "uti
                     break;
             }
         };
-        QwixxTikoflano.prototype.isLTRRow = function (color) {
-            return ["red", "yellow"].includes(color);
-        };
-        QwixxTikoflano.prototype.onCheckBox = function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            if (!(evt.currentTarget instanceof HTMLElement)) {
-                throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
-            }
-            if (evt.currentTarget.classList.contains("crossed")) {
-                return;
-            }
-            var _a = evt.currentTarget.id.split("_"), color = _a[1], value = _a[2];
-        };
-        QwixxTikoflano.prototype.onPass = function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            if (!(evt.currentTarget instanceof HTMLElement)) {
-                throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
-            }
-            this.bgaPerformAction("actPass", {});
-        };
         return QwixxTikoflano;
     }(Gamegui));
+    exports.QwixxTikoflano = QwixxTikoflano;
     window.bgagame = { qwixxtikoflano: QwixxTikoflano };
 });

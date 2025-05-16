@@ -18,6 +18,9 @@ declare(strict_types=1);
 
 namespace Bga\Games\QwixxTikoflano;
 
+use BgaUserException;
+use BgaVisibleSystemException;
+
 require_once APP_GAMEMODULE_PATH . "module/table/table.game.php";
 require_once __DIR__ . "/constants.inc.php";
 
@@ -36,12 +39,88 @@ class Game extends \Table {
         parent::__construct();
 
         $this->initGameStateLabels([]);
+
+        $this->notify->addDecorator(
+            fn(string $message, array $args) => $this->decoratePlayerNameNotifArg($message, $args)
+        );
+    }
+
+    public function decoratePlayerNameNotifArg(string $message, array $args): array {
+        // if the notif message contains ${player_name} but it isn't set in the args, add it on args from $args['player_id']
+        if (isset($args["player_id"]) && !isset($args["player_name"]) && str_contains($message, '${player_name}')) {
+            $args["player_name"] = $this->getPlayerNameById($args["player_id"]);
+        }
+        return $args;
+    }
+
+    private function validatePositionValue(string $color, int $position, int $value) {
+        if (in_array($color, [DIE_RED, DIE_YELLOW])) {
+            if ($position + 2 == $value) {
+                return;
+            }
+        } elseif (in_array($color, [DIE_RED, DIE_YELLOW])) {
+            if ($position + $value == 12) {
+                return;
+            }
+        } else {
+            throw new BgaVisibleSystemException(clienttranslate("Unexpected color received: $color"));
+        }
+
+        throw new BgaVisibleSystemException(clienttranslate("Position and value do not match"));
+    }
+
+    private function debugx($content) {
+        throw new BgaUserException(print_r($content, true));
+    }
+
+    private function validateValue($die1_color, $die2_color, $value) {
+        // use $this->gamestate->state() to check state and get valid die combination
+        $dice = $this->getDice();
+
+        $value1 = $dice[$die1_color];
+        $value2 = $dice[$die2_color];
+
+        if ($value != $value1 + $value2) {
+            throw new BgaVisibleSystemException(clienttranslate("The sent value does not match any combination"));
+        }
+    }
+
+    private function validatePosition($player_id, $color, $position) {
+        $highest_position = $this->getHighestCheckedBoxPosition($player_id, $color);
+
+        if ($highest_position >= $position) {
+            throw new BgaUserException(clienttranslate("Invalid move"));
+        }
+    }
+
+    public function actCheckBox(string $color, int $position, int $value): void {
+        // Retrieve the current player ID. This is the player who sent the check box action, not the active player.
+        $player_id = (int) $this->getCurrentPlayerId();
+
+        $this->validatePositionValue($color, $position, $value);
+        $this->validateValue(DIE_WHITE_1, DIE_WHITE_2, $value);
+        $this->validatePosition($player_id, $color, $position);
+
+        $this->registerCheckedBox($player_id, $color, $position);
+
+        // Notify all players about the checked box
+        $this->notify->all(
+            NT_CHECK_BOX,
+            clienttranslate('${player_name} has checked the number {value} from the {color} row'),
+            [
+                "player_id" => $player_id,
+                "color" => $color,
+                "position" => $position,
+                "value" => $value,
+            ]
+        );
+
+        // at the end of the action, move to the next state
+        $this->gamestate->setPlayerNonMultiactive($player_id, TN_CHECK_BOX);
     }
 
     public function actPass(): void {
-        $this->checkAction(ACT_PASS);
-
-        // Retrieve the current player ID. This is the player who sent a pass action, not the active player.
+        // Retrieve the current player ID. This is the player who sent the pass action, not the active player.
         $player_id = (int) $this->getCurrentPlayerId();
 
         // // Notify all players about the choice to pass.
@@ -315,11 +394,28 @@ class Game extends \Table {
         return $dice;
     }
 
-    public function stMultiPlayerInit() {
-        $this->gamestate->setAllPlayersMultiactive();
-    }
-
     function getCheckedBoxes() {
         return self::getObjectListFromDB("SELECT * FROM checkedboxes");
+    }
+
+    function getHighestCheckedBoxPosition($player_id, $color) {
+        $escaped_player_id = self::escapeStringForDB($player_id);
+        $escaped_color = self::escapeStringForDB($color);
+
+        $highest_position = self::getUniqueValueFromDB(
+            "SELECT position FROM checkedboxes WHERE player_id = '$escaped_player_id' and color = '$escaped_color' ORDER BY position DESC LIMIT 1"
+        );
+
+        return is_null($highest_position) ? -1 : $highest_position;
+    }
+
+    function registerCheckedBox($player_id, $color, $position) {
+        $escaped_player_id = self::escapeStringForDB($player_id);
+        $escaped_color = self::escapeStringForDB($color);
+        $escaped_position = self::escapeStringForDB($position);
+
+        self::DbQuery(
+            "INSERT INTO checkedboxes (player_id, color, position) VALUES ($escaped_player_id, '$escaped_color', $escaped_position)"
+        );
     }
 }

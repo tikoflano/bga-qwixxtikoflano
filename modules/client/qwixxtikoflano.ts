@@ -18,14 +18,16 @@
 
 import Gamegui = require("ebg/core/gamegui");
 import "ebg/counter";
-import { getPlayerBoard, getBox } from "./utils";
+import { getPlayerBoard, getBoxByPosition, isLTRRow, getDiceSum, objectEntries, getBoxByValue } from "./utils";
+import { onCheckBox, onPass } from "./listeners";
 
-type RowColor = "red" | "yellow" | "green" | "blue";
-type DieColor = "white_1" | "white_2" | RowColor;
+export type RowColor = "red" | "yellow" | "green" | "blue";
+export type DieColor = "white_1" | "white_2" | RowColor;
 type DiceValues = Record<DieColor, number>;
+type RowValues = Record<RowColor, number>;
 
 /** See {@link BGA.Gamegui} for more information. */
-class QwixxTikoflano extends Gamegui {
+export class QwixxTikoflano extends Gamegui {
   /** See {@link BGA.Gamegui} for more information. */
   constructor() {
     super();
@@ -72,12 +74,12 @@ class QwixxTikoflano extends Gamegui {
         for (let x = 2; x <= 12; x++) {
           const left = 26 + 39 * (x - 2);
 
-          const cell_number = this.isLTRRow(colors[i]!) ? x : 14 - x;
+          const cell_number = isLTRRow(colors[i]!) ? x : 14 - x;
 
           dojo.place(
             /* HTML */ `
               <div
-                class="box ${isCurrentPlayer ? "clickable" : ""}"
+                class="box"
                 data-color="${colors[i]}"
                 data-position="${x - 2}"
                 data-value="${cell_number}"
@@ -101,9 +103,6 @@ class QwixxTikoflano extends Gamegui {
       }
     }
 
-    // Hook up listeners
-    dojo.query<HTMLElement>(".box").connect("click", this, "onCheckBox");
-
     // TODO: Set up your game interface here, according to "gamedatas"
 
     // Setup game notifications to handle (see "setupNotifications" method below)
@@ -121,11 +120,13 @@ class QwixxTikoflano extends Gamegui {
 
     switch (stateName) {
       case "useWhiteSum":
+        // Set dice faces
         for (const [color, value] of Object.entries(state.args["die"] as DiceValues)) {
           dojo.byId(`die_${color}`)!.dataset["value"] = `${value}`;
         }
 
-        const maxCheckedBoxPosition: Record<RowColor, number> = {
+        // Mark checked box
+        const maxCheckedBoxPosition: RowValues = {
           red: -1,
           yellow: -1,
           green: -1,
@@ -137,7 +138,7 @@ class QwixxTikoflano extends Gamegui {
           const box_position: number = parseInt(checkedBox["position"]);
           const box_player_id: BGA.ID = checkedBox["player_id"];
           const player_board = getPlayerBoard(box_player_id);
-          const box = getBox(player_board, box_color, box_position);
+          const box = getBoxByPosition(player_board, box_color, box_position);
 
           if (box_player_id == this.player_id) {
             maxCheckedBoxPosition[box_color] = Math.max(maxCheckedBoxPosition[box_color], box_position);
@@ -146,14 +147,24 @@ class QwixxTikoflano extends Gamegui {
           dojo.addClass(box, "crossed");
         }
 
-        console.log("MAX POS", maxCheckedBoxPosition);
-
+        // Mark invalid box
         const my_player_board = getPlayerBoard(this.player_id);
-        for (const [row_color, max_position] of Object.entries(maxCheckedBoxPosition)) {
+        for (const [row_color, max_position] of objectEntries(maxCheckedBoxPosition)) {
           for (let position = 0; position <= max_position; position++) {
-            const box = getBox(my_player_board, row_color, position);
+            const box = getBoxByPosition(my_player_board, row_color, position);
 
             dojo.addClass(box, "invalid");
+          }
+        }
+
+        // Mark clickable boxes
+        const white_dice_sum = getDiceSum("white_1", "white_2");
+        for (const [row_color] of objectEntries(maxCheckedBoxPosition)) {
+          const box = getBoxByValue(my_player_board, row_color, white_dice_sum);
+
+          if (!box.classList.contains("invalid")) {
+            dojo.addClass(box, "clickable");
+            dojo.connect(box, "click", this, onCheckBox);
           }
         }
 
@@ -181,7 +192,7 @@ class QwixxTikoflano extends Gamegui {
     switch (stateName) {
       case "useWhiteSum":
         if (this.isCurrentPlayerActive()) {
-          this.addActionButton("button_pass", _("Pass"), this.onPass);
+          this.addActionButton("button_pass", _("Pass"), onPass);
         } else {
           this.removeActionButtons();
         }
@@ -191,10 +202,6 @@ class QwixxTikoflano extends Gamegui {
 
   ///////////////////////////////////////////////////
   //// Utility methods
-
-  isLTRRow(color: string) {
-    return ["red", "yellow"].includes(color);
-  }
 
   ///////////////////////////////////////////////////
   //// Player's action
@@ -206,36 +213,6 @@ class QwixxTikoflano extends Gamegui {
 		- check the action is possible at this game state.
 		- make a call to the game server
 	*/
-
-  onCheckBox(evt: Event) {
-    evt.preventDefault();
-    evt.stopPropagation();
-
-    if (!(evt.currentTarget instanceof HTMLElement)) {
-      throw new Error(
-        "evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.",
-      );
-    }
-
-    if (evt.currentTarget.classList.contains("crossed")) {
-      return;
-    }
-
-    const [, color, value] = evt.currentTarget.id.split("_");
-  }
-
-  onPass(evt: Event) {
-    evt.preventDefault();
-    evt.stopPropagation();
-
-    if (!(evt.currentTarget instanceof HTMLElement)) {
-      throw new Error(
-        "evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.",
-      );
-    }
-
-    this.bgaPerformAction("actPass", {});
-  }
 
   ///////////////////////////////////////////////////
   //// Reaction to cometD notifications

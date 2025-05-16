@@ -34,3 +34,8 @@ const DIE_RED = "red";
 const DIE_YELLOW = "yellow";
 const DIE_GREEN = "green";
 const DIE_BLUE = "blue";
+
+/*
+ * Notifications
+ */
+const NT_CHECK_BOX = "checkBox";

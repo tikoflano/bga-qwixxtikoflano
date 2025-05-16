@@ -8,6 +8,8 @@
  * -----
  */
 
+@import "css/animations";
+
 .player_area {
   float: left;
   margin-right: 50px;
@@ -33,6 +35,7 @@
 
       &.clickable {
         cursor: pointer;
+        animation: pulse-animation 2s linear infinite alternate;
       }
 
       &.lock {

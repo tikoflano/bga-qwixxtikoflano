@@ -8,6 +8,16 @@
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  */
+@keyframes pulse-animation {
+  0% {
+    background-color: #bcc597;
+    opacity: 0.1;
+  }
+  100% {
+    background-color: #bcc597;
+    opacity: 0.6;
+  }
+}
 .player_area {
   float: left;
   margin-right: 50px;
@@ -32,6 +42,7 @@
 }
 .player_area .player_board .box.clickable {
   cursor: pointer;
+  animation: pulse-animation 2s linear infinite alternate;
 }
 .player_area .player_board .box.lock {
   left: 460px;
