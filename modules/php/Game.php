@@ -58,7 +58,7 @@ class Game extends \Table {
             if ($position + 2 == $value) {
                 return;
             }
-        } elseif (in_array($color, [DIE_RED, DIE_YELLOW])) {
+        } elseif (in_array($color, [DIE_GREEN, DIE_BLUE])) {
             if ($position + $value == 12) {
                 return;
             }
@@ -73,16 +73,28 @@ class Game extends \Table {
         throw new BgaUserException(print_r($content, true));
     }
 
-    private function validateValue($die1_color, $die2_color, $value) {
-        // use $this->gamestate->state() to check state and get valid die combination
+    private function validateValue($color, $value) {
         $dice = $this->getDice();
 
-        $value1 = $dice[$die1_color];
-        $value2 = $dice[$die2_color];
+        if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
+            $value1 = $dice[DIE_WHITE_1];
+            $value2 = $dice[DIE_WHITE_2];
 
-        if ($value != $value1 + $value2) {
-            throw new BgaVisibleSystemException(clienttranslate("The sent value does not match any combination"));
+            if ($value == $value1 + $value2) {
+                return true;
+            }
+        } else {
+            foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
+                $value1 = $dice[$color];
+                $value2 = $dice[$white];
+
+                if ($value == $value1 + $value2) {
+                    return true;
+                }
+            }
         }
+
+        throw new BgaVisibleSystemException(clienttranslate("The sent value does not match any valid combination"));
     }
 
     private function validatePosition($player_id, $color, $position) {
@@ -98,15 +110,15 @@ class Game extends \Table {
         $player_id = (int) $this->getCurrentPlayerId();
 
         $this->validatePositionValue($color, $position, $value);
-        $this->validateValue(DIE_WHITE_1, DIE_WHITE_2, $value);
+        $this->validateValue($color, $value);
         $this->validatePosition($player_id, $color, $position);
 
-        $this->registerCheckedBox($player_id, $color, $position);
+        $this->persistCheckedBoxInDB($player_id, $color, $position);
 
         // Notify all players about the checked box
         $this->notify->all(
-            NT_CHECK_BOX,
-            clienttranslate('${player_name} has checked the number {value} from the {color} row'),
+            NT_BOX_CHECKED,
+            clienttranslate('${player_name} has checked the number ${value} from the ${color} row'),
             [
                 "player_id" => $player_id,
                 "color" => $color,
@@ -116,7 +128,12 @@ class Game extends \Table {
         );
 
         // at the end of the action, move to the next state
-        $this->gamestate->setPlayerNonMultiactive($player_id, TN_CHECK_BOX);
+
+        if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
+            $this->gamestate->setPlayerNonMultiactive($player_id, TN_CHECK_BOX);
+        } else {
+            $this->gamestate->nextState(TN_CHECK_BOX);
+        }
     }
 
     public function actPass(): void {
@@ -131,23 +148,6 @@ class Game extends \Table {
 
         // at the end of the action, move to the next state
         $this->gamestate->setPlayerNonMultiactive($player_id, TN_PASS);
-    }
-
-    /**
-     * Game state arguments.
-     *
-     * This method returns some additional information that is specific to the `useWhiteSum` and `useColorSum` game states.
-     *
-     * @return array
-     * @see ./states.inc.php
-     */
-    public function argUseDice(): array {
-        // Get some values from the current game situation from the database.
-
-        return [
-            "die" => self::getDice(),
-            "checkedBoxes" => self::getCheckedBoxes(),
-        ];
     }
 
     /**
@@ -180,9 +180,14 @@ class Game extends \Table {
 
         $this->activeNextPlayer();
 
+        $new_dice = $this->rollDice();
+
+        // Notify all players about the dice roll
+        $this->notify->all(NT_DICE_ROLLED, "", ["dice" => $new_dice]);
+
         // Go to another gamestate
         // Here, we would detect if the game is over, and in this case use "endGame" transition instead
-        $this->gamestate->nextState("nextPlayer");
+        $this->gamestate->nextState(TN_NEXT_TURN);
     }
 
     /**
@@ -226,7 +231,7 @@ class Game extends \Table {
         $result = [];
 
         // WARNING: We must only return information visible by the current player.
-        $current_player_id = (int) $this->getCurrentPlayerId();
+        // $current_player_id = (int) $this->getCurrentPlayerId();
 
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
@@ -234,7 +239,9 @@ class Game extends \Table {
             "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
         );
 
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
+        // Gather all information about current game situation (visible by player $current_player_id).
+        $result["checkedBoxes"] = $this->getCheckedBoxes();
+        $result["dice"] = $this->getDice();
 
         return $result;
     }
@@ -344,14 +351,12 @@ class Game extends \Table {
 
     function rollDice() {
         $dice = [
-            "dice" => [
-                DIE_WHITE_1 => bga_rand(1, 6),
-                DIE_WHITE_2 => bga_rand(1, 6),
-                DIE_RED => bga_rand(1, 6),
-                DIE_YELLOW => bga_rand(1, 6),
-                DIE_GREEN => bga_rand(1, 6),
-                DIE_BLUE => bga_rand(1, 6),
-            ],
+            DIE_WHITE_1 => bga_rand(1, 6),
+            DIE_WHITE_2 => bga_rand(1, 6),
+            DIE_RED => bga_rand(1, 6),
+            DIE_YELLOW => bga_rand(1, 6),
+            DIE_GREEN => bga_rand(1, 6),
+            DIE_BLUE => bga_rand(1, 6),
         ];
 
         self::DbQuery(
@@ -360,32 +365,32 @@ class Game extends \Table {
                 DIE_WHITE_1 .
                 "', 
                 '" .
-                $dice["dice"][DIE_WHITE_1] .
+                $dice[DIE_WHITE_1] .
                 "'),
                 ('" .
                 DIE_WHITE_2 .
                 "', '" .
-                $dice["dice"][DIE_WHITE_2] .
+                $dice[DIE_WHITE_2] .
                 "'),
                 ('" .
                 DIE_RED .
                 "', '" .
-                $dice["dice"][DIE_RED] .
+                $dice[DIE_RED] .
                 "'),
                 ('" .
                 DIE_YELLOW .
                 "', '" .
-                $dice["dice"][DIE_YELLOW] .
+                $dice[DIE_YELLOW] .
                 "'),
                 ('" .
                 DIE_GREEN .
                 "', '" .
-                $dice["dice"][DIE_GREEN] .
+                $dice[DIE_GREEN] .
                 "'),
                 ('" .
                 DIE_BLUE .
                 "', '" .
-                $dice["dice"][DIE_BLUE] .
+                $dice[DIE_BLUE] .
                 "')
                 ON DUPLICATE KEY UPDATE
                 color=VALUES(color), value=VALUES(value)"
@@ -409,7 +414,7 @@ class Game extends \Table {
         return is_null($highest_position) ? -1 : $highest_position;
     }
 
-    function registerCheckedBox($player_id, $color, $position) {
+    function persistCheckedBoxInDB($player_id, $color, $position) {
         $escaped_player_id = self::escapeStringForDB($player_id);
         $escaped_color = self::escapeStringForDB($color);
         $escaped_position = self::escapeStringForDB($position);

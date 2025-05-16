@@ -1,6 +1,7 @@
 // This file needs to be imported by the mainfile, otherwise it won't recognize the BGA namespace
 
-import { RowColor, type DieColor } from "./qwixxtikoflano";
+import { type QwixxTikoflano, RowColor, type DieColor, type DiceValues } from "../qwixxtikoflano";
+import { onCheckBox } from "./userActionsHandlers";
 
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
@@ -9,7 +10,7 @@ export function isLTRRow(color: string) {
   return ["red", "yellow"].includes(color);
 }
 
-export function getPlayerBoard(player_id: BGA.ID | number | `${number}` | null) {
+export function getPlayerBoard(player_id: BGA.ID) {
   const player_board = dojo.query<HTMLElement>(`.player_area[data-player-id="${player_id}"] .player_board`)[0];
 
   if (!player_board) {
@@ -19,10 +20,11 @@ export function getPlayerBoard(player_id: BGA.ID | number | `${number}` | null) 
   return player_board;
 }
 
-function getBoxBy(palyer_board: HTMLElement, color: RowColor, value: number | string, data_attribute: string) {
+export function getBoxBy(player_id: BGA.ID, color: RowColor, value: number, data_attribute: string) {
+  const player_board = getPlayerBoard(player_id);
   const box = dojo.query<HTMLElement>(
     `.box[data-color="${color}"][data-${data_attribute}="${value}"]`,
-    palyer_board,
+    player_board,
   )[0];
 
   if (!box) {
@@ -32,12 +34,12 @@ function getBoxBy(palyer_board: HTMLElement, color: RowColor, value: number | st
   return box;
 }
 
-export function getBoxByPosition(palyer_board: HTMLElement, color: RowColor, position: number | string) {
-  return getBoxBy(palyer_board, color, position, "position");
+export function getBoxByPosition(player_id: BGA.ID, color: RowColor, position: number) {
+  return getBoxBy(player_id, color, position, "position");
 }
 
-export function getBoxByValue(palyer_board: HTMLElement, color: RowColor, value: number | string) {
-  return getBoxBy(palyer_board, color, value, "value");
+export function getBoxByValue(player_id: BGA.ID, color: RowColor, value: number) {
+  return getBoxBy(player_id, color, value, "value");
 }
 
 export function getDiceSum(die1_color: DieColor, die2_color: DieColor) {
@@ -61,4 +63,10 @@ export function getDiceSum(die1_color: DieColor, die2_color: DieColor) {
 // Same as `Object.entries()` but with type inference
 export function objectEntries<T extends object>(obj: T): Entries<T> {
   return Object.entries(obj) as Entries<T>;
+}
+
+export function setDiceFaces(dice_values: DiceValues) {
+  for (const [color, value] of objectEntries(dice_values)) {
+    dojo.byId(`die_${color}`)!.dataset["value"] = `${value}`;
+  }
 }

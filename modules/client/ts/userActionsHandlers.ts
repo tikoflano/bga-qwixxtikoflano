@@ -1,4 +1,4 @@
-import { type QwixxTikoflano } from "./qwixxtikoflano";
+import { type QwixxTikoflano } from "../qwixxtikoflano";
 
 export function onCheckBox(this: QwixxTikoflano, evt: Event) {
   evt.preventDefault();
@@ -13,7 +13,6 @@ export function onCheckBox(this: QwixxTikoflano, evt: Event) {
   }
 
   const { color, position, value } = evt.currentTarget.dataset;
-  console.log("CLICK", { color, position, value });
 
   this.bgaPerformAction("actCheckBox", { color, position, value });
 }

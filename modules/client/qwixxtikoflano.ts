@@ -18,16 +18,47 @@
 
 import Gamegui = require("ebg/core/gamegui");
 import "ebg/counter";
-import { getPlayerBoard, getBoxByPosition, isLTRRow, getDiceSum, objectEntries, getBoxByValue } from "./utils";
-import { onCheckBox, onPass } from "./listeners";
+import {
+  getPlayerBoard,
+  getBoxByPosition,
+  isLTRRow,
+  getDiceSum,
+  objectEntries,
+  setDiceFaces,
+  getBoxByValue,
+} from "./ts/utils";
+import { onCheckBox, onPass } from "./ts/userActionsHandlers";
+import { ntf_boxCheckedHandler, ntf_diceRolledHandler } from "./ts/notificationsHandlers";
 
 export type RowColor = "red" | "yellow" | "green" | "blue";
-export type DieColor = "white_1" | "white_2" | RowColor;
-type DiceValues = Record<DieColor, number>;
+export type WhiteDice = "white_1" | "white_2";
+export type DieColor = WhiteDice | RowColor;
+export type DiceValues = Record<DieColor, number>;
 type RowValues = Record<RowColor, number>;
 
+// Typescript casting, which results in no impact.
+const SetupGamegui = Gamegui as DojoJS.DojoClassFrom<
+  [
+    typeof Gamegui,
+    {
+      // Redefine any properties desired...
+      player_id: BGA.ID; // no longer nullable
+      gamedatas: BGA.Gamedatas; // no longer nullable
+      game_id: number; // no longer undefinable
+    },
+  ]
+>;
+
 /** See {@link BGA.Gamegui} for more information. */
-export class QwixxTikoflano extends Gamegui {
+export class QwixxTikoflano extends SetupGamegui {
+  private max_checked_box_position: RowValues = {
+    red: -1,
+    yellow: -1,
+    green: -1,
+    blue: -1,
+  };
+  private click_connections: DojoJS.Handle[] = [];
+
   /** See {@link BGA.Gamegui} for more information. */
   constructor() {
     super();
@@ -104,6 +135,20 @@ export class QwixxTikoflano extends Gamegui {
     }
 
     // TODO: Set up your game interface here, according to "gamedatas"
+    // Set dice faces
+    setDiceFaces(gamedatas["dice"]);
+
+    // Mark checked boxes
+    for (const checkedBox of gamedatas["checkedBoxes"]) {
+      const box_player_id: BGA.ID = checkedBox["player_id"];
+      const box_color: RowColor = checkedBox["color"];
+      const box_position: number = parseInt(checkedBox["position"]);
+
+      this.markCheckedBox(box_player_id, box_color, box_position);
+    }
+
+    // Mark invalid box
+    this.updateInvalidBoxes();
 
     // Setup game notifications to handle (see "setupNotifications" method below)
     this.setupNotifications();
@@ -120,51 +165,38 @@ export class QwixxTikoflano extends Gamegui {
 
     switch (stateName) {
       case "useWhiteSum":
-        // Set dice faces
-        for (const [color, value] of Object.entries(state.args["die"] as DiceValues)) {
-          dojo.byId(`die_${color}`)!.dataset["value"] = `${value}`;
-        }
-
-        // Mark checked box
-        const maxCheckedBoxPosition: RowValues = {
-          red: -1,
-          yellow: -1,
-          green: -1,
-          blue: -1,
-        };
-
-        for (const checkedBox of state.args["checkedBoxes"]) {
-          const box_color: RowColor = checkedBox["color"];
-          const box_position: number = parseInt(checkedBox["position"]);
-          const box_player_id: BGA.ID = checkedBox["player_id"];
-          const player_board = getPlayerBoard(box_player_id);
-          const box = getBoxByPosition(player_board, box_color, box_position);
-
-          if (box_player_id == this.player_id) {
-            maxCheckedBoxPosition[box_color] = Math.max(maxCheckedBoxPosition[box_color], box_position);
-          }
-
-          dojo.addClass(box, "crossed");
-        }
-
-        // Mark invalid box
-        const my_player_board = getPlayerBoard(this.player_id);
-        for (const [row_color, max_position] of objectEntries(maxCheckedBoxPosition)) {
-          for (let position = 0; position <= max_position; position++) {
-            const box = getBoxByPosition(my_player_board, row_color, position);
-
-            dojo.addClass(box, "invalid");
-          }
-        }
-
         // Mark clickable boxes
         const white_dice_sum = getDiceSum("white_1", "white_2");
-        for (const [row_color] of objectEntries(maxCheckedBoxPosition)) {
-          const box = getBoxByValue(my_player_board, row_color, white_dice_sum);
+        for (const [row_color] of objectEntries(this.max_checked_box_position)) {
+          this.makeBoxClickable(row_color, white_dice_sum);
+        }
+        break;
+      case "useColorSum":
+        // Mark clickable boxes
+        type NumberMap = {
+          [key in RowColor]: {
+            [key in WhiteDice]: number;
+          };
+        };
 
-          if (!box.classList.contains("invalid")) {
-            dojo.addClass(box, "clickable");
-            dojo.connect(box, "click", this, onCheckBox);
+        const possible_sums: NumberMap = {
+          red: { white_1: -1, white_2: -1 },
+          yellow: { white_1: -1, white_2: -1 },
+          green: { white_1: -1, white_2: -1 },
+          blue: { white_1: -1, white_2: -1 },
+        };
+
+        for (const color_die of ["red", "yellow", "green", "blue"] as RowColor[]) {
+          for (const white_die of ["white_1", "white_2"] as WhiteDice[]) {
+            possible_sums[color_die][white_die] = getDiceSum(color_die, white_die);
+          }
+        }
+
+        if (state.active_player == this.player_id) {
+          for (const [row_color, sum_data] of objectEntries(possible_sums)) {
+            for (const [, sum] of objectEntries(sum_data)) {
+              this.makeBoxClickable(row_color, sum);
+            }
           }
         }
 
@@ -177,8 +209,9 @@ export class QwixxTikoflano extends Gamegui {
     console.log("Leaving state: " + stateName);
 
     switch (stateName) {
-      case "dummmy":
-        // enable/disable any user interaction...
+      case "useWhiteSum":
+      case "useColorSum":
+        this.clearClickHandlers();
         break;
     }
   }
@@ -203,6 +236,41 @@ export class QwixxTikoflano extends Gamegui {
   ///////////////////////////////////////////////////
   //// Utility methods
 
+  makeBoxClickable(color: RowColor, value: number) {
+    const box = getBoxByValue(this.player_id!, color, value);
+
+    if (box.classList.contains("invalid") || box.classList.contains("clickable")) {
+      return;
+    }
+
+    dojo.addClass(box, "clickable");
+    this.click_connections.push(dojo.connect(box, "click", this, onCheckBox));
+  }
+
+  markCheckedBox(player_id: BGA.ID, color: RowColor, position: number) {
+    const box = getBoxByPosition(player_id, color, position);
+    dojo.addClass(box, "crossed");
+
+    if (player_id == this.player_id) {
+      this.max_checked_box_position[color] = Math.max(this.max_checked_box_position[color], position);
+    }
+  }
+
+  updateInvalidBoxes() {
+    for (const [row_color, max_position] of objectEntries(this.max_checked_box_position)) {
+      for (let position = 0; position <= max_position; position++) {
+        const box = getBoxByPosition(this.player_id, row_color, position);
+
+        dojo.addClass(box, "invalid");
+      }
+    }
+  }
+
+  clearClickHandlers() {
+    this.click_connections.forEach((connection) => dojo.disconnect(connection));
+    dojo.query(".clickable").removeClass("clickable");
+  }
+
   ///////////////////////////////////////////////////
   //// Player's action
 
@@ -221,47 +289,11 @@ export class QwixxTikoflano extends Gamegui {
   override setupNotifications = () => {
     console.log("notifications subscriptions setup");
 
-    // TODO: here, associate your game notifications with local methods
-
-    // Builtin example...
-    // dojo.subscribe( 'cardPlayed_1', this, "ntf_any" );
-    // dojo.subscribe( 'actionTaken', this, "ntf_actionTaken" );
-    // dojo.subscribe( 'cardPlayed_0', this, "ntf_cardPlayed" );
-    // dojo.subscribe( 'cardPlayed_1', this, "ntf_cardPlayed" );
-
-    //	With CommonMixin from 'cookbook/common'...
-    // this.subscribeNotif( "cardPlayed_1", this.ntf_any );
-    // this.subscribeNotif( "actionTaken", this.ntf_actionTaken );
-    // this.subscribeNotif( "cardPlayed_0", this.ntf_cardPlayed );
-    // this.subscribeNotif( "cardPlayed_1", this.ntf_cardPlayed );
+    // REF: https://en.doc.boardgamearena.com/Game_interface_logic:_yourgamename.js#Ignoring_notifications
+    // this.notifqueue.setIgnoreNotificationCheck("checkBox", (notif) => notif.args.player_id == this.player_id);
+    dojo.subscribe("boxChecked", this, ntf_boxCheckedHandler);
+    dojo.subscribe("diceRolled", this, ntf_diceRolledHandler);
   };
-
-  /* Example:
-
-	ntf_any( notif: BGA.Notif )
-	{
-		console.log( 'ntf_any', notif );
-		notif.args!['arg_0'];
-	}
-
-	ntf_actionTaken( notif: BGA.Notif<'actionTaken'> ) {
-		console.log( 'ntf_actionTaken', notif );
-	}
-
-	ntf_cardPlayed( notif: BGA.Notif<'cardPlayed_0' | 'cardPlayed_1'> )
-	{
-		console.log( 'ntf_cardPlayed', notif );
-		switch( notif.type ) {
-			case 'cardPlayed_0':
-				notif.args.arg_0;
-				break;
-			case 'cardPlayed_1':
-				notif.args.arg_1;
-				break;
-		}
-	}
-
-	*/
 }
 
 // The global 'bgagame.qwixxtikoflano' class is instantiated when the page is loaded and used as the Gamegui.

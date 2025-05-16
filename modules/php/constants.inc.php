@@ -9,6 +9,12 @@ const ST_USE_COLOR_SUM = 11;
 const ST_NEXT_PLAYER = 12;
 const ST_END_GAME = 99;
 
+const ST_BGA_GAME_SETUP_NAME = "gameSetup";
+const ST_USE_WHITE_SUM_NAME = "useWhiteSum";
+const ST_USE_COLOR_SUM_NAME = "useColorSum";
+const ST_NEXT_PLAYER_NAME = "nextPlayer";
+const ST_END_GAME_NAME = "gameEnd";
+
 /*
  * Transitions
  */
@@ -38,4 +44,5 @@ const DIE_BLUE = "blue";
 /*
  * Notifications
  */
-const NT_CHECK_BOX = "checkBox";
+const NT_BOX_CHECKED = "boxChecked";
+const NT_DICE_ROLLED = "diceRolled";

@@ -54,7 +54,7 @@ require_once "modules/php/constants.inc.php";
 
 $machinestates = [
     ST_BGA_GAME_SETUP => [
-        "name" => "gameSetup",
+        "name" => ST_BGA_GAME_SETUP_NAME,
         "description" => clienttranslate("Game setup"),
         "type" => "manager",
         "action" => "stGameSetup",
@@ -62,12 +62,11 @@ $machinestates = [
     ],
 
     ST_USE_WHITE_SUM => [
-        "name" => "useWhiteSum",
+        "name" => ST_USE_WHITE_SUM_NAME,
         "description" => clienttranslate("Waiting for other players"),
         "descriptionmyturn" => clienttranslate('${you} may check a box based on the white die'),
         "type" => "multipleactiveplayer",
         "action" => "stMakeEveryoneActive",
-        "args" => "argUseDice",
         "possibleactions" => [ACT_PASS, ACT_CHECK_BOX],
         "transitions" => [
             TN_CHECK_BOX => ST_USE_COLOR_SUM,
@@ -77,11 +76,10 @@ $machinestates = [
     ],
 
     ST_USE_COLOR_SUM => [
-        "name" => "useColorSum",
+        "name" => ST_USE_COLOR_SUM_NAME,
         "description" => clienttranslate('${actplayer} may check a box based on the colored die'),
         "descriptionmyturn" => clienttranslate('${you} may check a box based on the colored die'),
         "type" => "activeplayer",
-        "args" => "argUseDice",
         "possibleactions" => [ACT_CHECK_BOX],
         "transitions" => [
             TN_CHECK_BOX => ST_NEXT_PLAYER,
@@ -90,7 +88,7 @@ $machinestates = [
     ],
 
     ST_NEXT_PLAYER => [
-        "name" => "nextPlayer",
+        "name" => ST_NEXT_PLAYER_NAME,
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
@@ -101,7 +99,7 @@ $machinestates = [
     ],
 
     ST_END_GAME => [
-        "name" => "gameEnd",
+        "name" => ST_END_GAME_NAME,
         "description" => clienttranslate("End of game"),
         "type" => "manager",
         "action" => "stGameEnd",
