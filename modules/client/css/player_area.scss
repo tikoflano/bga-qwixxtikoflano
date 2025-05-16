@@ -1,0 +1,48 @@
+.player_area {
+  float: left;
+  margin-right: 50px;
+
+  .player_name {
+    background: #dddddf;
+    padding: 2px 50px;
+    border-radius: 10px 10px 0px 0px;
+  }
+
+  .player_board {
+    background-image: url(img/qwixx_board.jpeg);
+    width: 500px;
+    position: relative;
+    aspect-ratio: 946 / 480;
+    background-size: cover;
+
+    .box {
+      position: absolute;
+      border-radius: 7px;
+      aspect-ratio: 36 / 37;
+      // border: 1px solid cyan;
+
+      &.clickable {
+        cursor: pointer;
+        animation: pulse-animation 0.5s linear infinite alternate;
+      }
+
+      &.lock {
+        left: 460px;
+        top: 20px;
+        aspect-ratio: 1 / 1;
+        width: 27px;
+        border-radius: 100%;
+      }
+
+      &.crossed {
+        background-image: url(img/cross.png);
+        background-size: cover;
+      }
+
+      &.invalid:not(.crossed) {
+        background-color: white;
+        opacity: 0.75;
+      }
+    }
+  }
+}

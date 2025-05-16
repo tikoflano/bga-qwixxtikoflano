@@ -10,12 +10,12 @@
  */
 @keyframes pulse-animation {
   0% {
-    background-color: #bcc597;
+    background-color: #eee;
     opacity: 0.1;
   }
   100% {
-    background-color: #bcc597;
-    opacity: 0.6;
+    background-color: #eee;
+    opacity: 0.9;
   }
 }
 .player_area {
@@ -38,11 +38,10 @@
   position: absolute;
   border-radius: 7px;
   aspect-ratio: 36/37;
-  border: 1px solid cyan;
 }
 .player_area .player_board .box.clickable {
   cursor: pointer;
-  animation: pulse-animation 2s linear infinite alternate;
+  animation: pulse-animation 0.5s linear infinite alternate;
 }
 .player_area .player_board .box.lock {
   left: 460px;
@@ -54,9 +53,6 @@
 .player_area .player_board .box.crossed {
   background-image: url(img/cross.png);
   background-size: cover;
-}
-.player_area .player_board .box.invalid {
-  cursor: not-allowed;
 }
 .player_area .player_board .box.invalid:not(.crossed) {
   background-color: white;
