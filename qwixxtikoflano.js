@@ -170,8 +170,8 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
         }
         QwixxTikoflano.prototype.setup = function (gamedatas) {
             console.log("Starting game setup", gamedatas);
-            var die_tray = "\n        <div id=\"die_tray\">\n          <span id=\"die_white_1\" class=\"die\" data-value=\"1\" data-color=\"white\"></span>\n          <span id=\"die_white_2\" class=\"die\" data-value=\"2\" data-color=\"white\"></span>\n          <span id=\"die_red\" class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n          <span id=\"die_yellow\" class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n          <span id=\"die_green\" class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n          <span id=\"die_blue\" class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n        </div>\n      ";
-            dojo.place(die_tray, "game_play_area", "first");
+            var dice_tray = "\n        <div id=\"dice_tray\">\n          <span id=\"die_white_1\" class=\"die\" data-value=\"1\" data-color=\"white\"></span>\n          <span id=\"die_white_2\" class=\"die\" data-value=\"2\" data-color=\"white\"></span>\n          <span id=\"die_red\" class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n          <span id=\"die_yellow\" class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n          <span id=\"die_green\" class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n          <span id=\"die_blue\" class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n        </div>\n      ";
+            dojo.place(dice_tray, "game_play_area", "first");
             var player_id;
             for (player_id in gamedatas.players) {
                 var player = gamedatas.players[player_id];

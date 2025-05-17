@@ -1,24 +1,28 @@
-.die {
-  $diePositons: (
-    "red": 0,
-    "yellow": 1,
-    "green": 2,
-    "blue": 3,
-    "white": 5,
-  );
+#dice_tray {
+  margin-bottom: 10px;
 
-  display: inline-block;
-  background-image: url(img/64_64_dice.jpg);
-  background-size: 600%;
-  background-repeat: no-repeat;
-  aspect-ratio: 1/1;
-  width: 64px;
-  border-radius: 5%; /* looks better with rounded corders */
+  .die {
+    $diePositons: (
+      "red": 0,
+      "yellow": 1,
+      "green": 2,
+      "blue": 3,
+      "white": 5,
+    );
 
-  @each $color, $row in $diePositons {
-    @for $i from 1 through 6 {
-      &[data-color="#{$color}"][data-value="#{$i}"] {
-        background-position: calc(100% / 5 * ($i - 1)) calc(100% / 5 * $row);
+    display: inline-block;
+    background-image: url(img/64_64_dice.jpg);
+    background-size: 600%;
+    background-repeat: no-repeat;
+    aspect-ratio: 1/1;
+    width: 64px;
+    border-radius: 5%; /* looks better with rounded corders */
+
+    @each $color, $row in $diePositons {
+      @for $i from 1 through 6 {
+        &[data-color="#{$color}"][data-value="#{$i}"] {
+          background-position: calc(100% / 5 * ($i - 1)) calc(100% / 5 * $row);
+        }
       }
     }
   }

@@ -84,9 +84,9 @@ export class QwixxTikoflano extends SetupGamegui {
   override setup(gamedatas: BGA.Gamedatas): void {
     console.log("Starting game setup", gamedatas);
 
-    // Set up die tray
-    const die_tray = /*HTML*/ `
-        <div id="die_tray">
+    // Set up dice tray
+    const dice_tray = /*HTML*/ `
+        <div id="dice_tray">
           <span id="die_white_1" class="die" data-value="1" data-color="white"></span>
           <span id="die_white_2" class="die" data-value="2" data-color="white"></span>
           <span id="die_red" class="die" data-value="3" data-color="red"></span>
@@ -95,7 +95,7 @@ export class QwixxTikoflano extends SetupGamegui {
           <span id="die_blue" class="die" data-value="6" data-color="blue"></span>
         </div>
       `;
-    dojo.place(die_tray, "game_play_area", "first");
+    dojo.place(dice_tray, "game_play_area", "first");
 
     // Setting up player boards
     let player_id: BGA.ID;
