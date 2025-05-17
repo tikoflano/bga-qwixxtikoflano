@@ -59,3 +59,4 @@ const NT_BOX_CHECKED = "boxChecked";
 const NT_PENALTY_BOX_CHECKED = "penaltyBoxChecked";
 const NT_DICE_ROLLED = "diceRolled";
 const NT_PASS = "pass";
+const NT_SCORE_CHANGED = "scoreChanged";

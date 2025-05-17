@@ -1,5 +1,5 @@
 import { setDiceFaces } from "./utils";
-import { type QwixxTikoflano } from "../qwixxtikoflano";
+import { RowColor, type QwixxTikoflano } from "../qwixxtikoflano";
 
 export function ntf_boxCheckedHandler(this: QwixxTikoflano, notif: BGA.Notif) {
   this.markCheckedBox(notif.args!["player_id"], notif.args!["color"], notif.args!["position"]);
@@ -16,4 +16,8 @@ export function ntf_diceRolledHandler(this: QwixxTikoflano, notif: BGA.Notif) {
 
 export function ntf_penaltyBoxChecked(this: QwixxTikoflano, notif: BGA.Notif) {
   this.markCheckedPenaltyBoxes(notif.args!["player_id"], notif.args!["penalty_count"]);
+}
+
+export function ntf_scoreChanged(this: QwixxTikoflano, notif: BGA.Notif) {
+  this.scoreCtrl[notif.args!["player_id"]]!.setValue(notif.args!["total_score"]);
 }

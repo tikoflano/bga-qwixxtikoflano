@@ -29,7 +29,12 @@ import {
   getPenaltyBox,
 } from "./ts/utils";
 import { onCheckBox, onCheckPenaltyBox, onPass } from "./ts/userActionsHandlers";
-import { ntf_boxCheckedHandler, ntf_diceRolledHandler, ntf_penaltyBoxChecked } from "./ts/notificationsHandlers";
+import {
+  ntf_boxCheckedHandler,
+  ntf_diceRolledHandler,
+  ntf_penaltyBoxChecked,
+  ntf_scoreChanged,
+} from "./ts/notificationsHandlers";
 
 export type RowColor = "red" | "yellow" | "green" | "blue";
 export type WhiteDice = "white_1" | "white_2";
@@ -330,6 +335,7 @@ export class QwixxTikoflano extends SetupGamegui {
     dojo.subscribe("boxChecked", this, ntf_boxCheckedHandler);
     dojo.subscribe("diceRolled", this, ntf_diceRolledHandler);
     dojo.subscribe("penaltyBoxChecked", this, ntf_penaltyBoxChecked);
+    dojo.subscribe("scoreChanged", this, ntf_scoreChanged);
   };
 }
 

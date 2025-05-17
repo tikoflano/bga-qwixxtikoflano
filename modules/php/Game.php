@@ -105,6 +105,8 @@ class Game extends \Table {
             ]
         );
 
+        $this->notifyScore($player_id);
+
         if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
             if ($player_id == $this->getActivePlayerId()) {
                 $this->globals->set(GL_WHITE_DICE_USED, true);
@@ -132,6 +134,8 @@ class Game extends \Table {
             "player_id" => $player_id,
             "penalty_count" => $current_penalty_count + 1,
         ]);
+
+        $this->notifyScore($player_id);
 
         $this->gamestate->nextState(TN_CHECK_PENALTY_BOX);
     }
@@ -359,7 +363,7 @@ class Game extends \Table {
         throw new BgaUserException(print_r($content, true));
     }
 
-    function rollDice() {
+    private function rollDice() {
         $dice = [
             DIE_WHITE_1 => bga_rand(1, 6),
             DIE_WHITE_2 => bga_rand(1, 6),
@@ -372,6 +376,19 @@ class Game extends \Table {
         $this->setDice($dice);
 
         return $dice;
+    }
+
+    private function notifyScore($player_id) {
+        $score_per_color = $this->getScorePerColor($player_id);
+        $total_score = array_reduce(array_values($score_per_color), fn($acc, $entry) => $acc + $entry["score"], 0);
+
+        $this->setPlayerScore($player_id, $total_score);
+
+        $this->notify->all(NT_SCORE_CHANGED, "", [
+            "player_id" => $player_id,
+            "score_per_color" => $score_per_color,
+            "total_score" => $total_score,
+        ]);
     }
 
     /**
@@ -389,26 +406,30 @@ class Game extends \Table {
     }
 
     public function getHighestCheckedBoxPosition($player_id, $color) {
-        $escaped_player_id = $this->escapeStringForDB($player_id);
-        $escaped_color = $this->escapeStringForDB($color);
-
         $highest_position = $this->getUniqueValueFromDB(
-            "SELECT position FROM checkedboxes WHERE player_id = '$escaped_player_id' and color = '$escaped_color' ORDER BY position DESC LIMIT 1"
+            "SELECT position FROM checkedboxes WHERE player_id = '$player_id' and color = '$color' ORDER BY position DESC LIMIT 1"
         );
 
         return is_null($highest_position) ? -1 : $highest_position;
     }
 
     public function getPlayerPenaltyCount($player_id) {
-        $escaped_player_id = $this->escapeStringForDB($player_id);
-
-        return $this->getUniqueValueFromDB(
-            "SELECT `player_penalty_count` FROM `player` WHERE player_id = $escaped_player_id"
-        );
+        return $this->getUniqueValueFromDB("SELECT `player_penalty_count` FROM `player` WHERE player_id = $player_id");
     }
 
     public function getDice() {
         return $this->getCollectionFromDB("SELECT color,value FROM dice", true);
+    }
+
+    function getPlayerScore($player_id) {
+        return $this->getUniqueValueFromDB("SELECT player_score FROM player WHERE player_id='$player_id'");
+    }
+
+    function getScorePerColor($player_id) {
+        return $this->getCollectionFromDB(
+            "SELECT color, COUNT(position) as `count`, CAST((COUNT(position) * (COUNT(position) + 1) / 2) AS UNSIGNED) as score 
+                FROM `checkedboxes` WHERE player_id = '$player_id' GROUP BY color"
+        );
     }
 
     /**
@@ -470,5 +491,9 @@ class Game extends \Table {
         $this->DbQuery(
             "UPDATE player SET player_penalty_count = player_penalty_count + 1 WHERE player_id = $escaped_player_id"
         );
+    }
+
+    function setPlayerScore($player_id, $new_score) {
+        $this->DbQuery("UPDATE player SET player_score='$new_score' WHERE player_id='$player_id'");
     }
 }

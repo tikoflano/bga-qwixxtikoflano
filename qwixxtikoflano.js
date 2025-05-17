@@ -124,6 +124,7 @@ define("ts/notificationsHandlers", ["require", "exports", "ts/utils"], function 
     exports.ntf_boxCheckedHandler = ntf_boxCheckedHandler;
     exports.ntf_diceRolledHandler = ntf_diceRolledHandler;
     exports.ntf_penaltyBoxChecked = ntf_penaltyBoxChecked;
+    exports.ntf_scoreChanged = ntf_scoreChanged;
     function ntf_boxCheckedHandler(notif) {
         this.markCheckedBox(notif.args["player_id"], notif.args["color"], notif.args["position"]);
         this.updateInvalidBoxes();
@@ -136,6 +137,9 @@ define("ts/notificationsHandlers", ["require", "exports", "ts/utils"], function 
     }
     function ntf_penaltyBoxChecked(notif) {
         this.markCheckedPenaltyBoxes(notif.args["player_id"], notif.args["penalty_count"]);
+    }
+    function ntf_scoreChanged(notif) {
+        this.scoreCtrl[notif.args["player_id"]].setValue(notif.args["total_score"]);
     }
 });
 define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/utils", "ts/userActionsHandlers", "ts/notificationsHandlers", "ebg/counter"], function (require, exports, Gamegui, utils_2, userActionsHandlers_1, notificationsHandlers_1) {
@@ -159,6 +163,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                 dojo.subscribe("boxChecked", _this, notificationsHandlers_1.ntf_boxCheckedHandler);
                 dojo.subscribe("diceRolled", _this, notificationsHandlers_1.ntf_diceRolledHandler);
                 dojo.subscribe("penaltyBoxChecked", _this, notificationsHandlers_1.ntf_penaltyBoxChecked);
+                dojo.subscribe("scoreChanged", _this, notificationsHandlers_1.ntf_scoreChanged);
             };
             console.log("qwixxtikoflano constructor");
             return _this;
