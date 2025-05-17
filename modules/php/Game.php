@@ -177,6 +177,13 @@ class Game extends \Table {
         // Give some extra time to the active player when he completed an action
         $this->giveExtraTime($player_id);
 
+        $current_penalty_count = $this->getPlayerPenaltyCount($player_id);
+
+        if ($current_penalty_count == 4) {
+            $this->gamestate->nextState(TN_END_GAME);
+            return;
+        }
+
         $this->activeNextPlayer();
 
         $new_dice = $this->rollDice();
