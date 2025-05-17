@@ -26,6 +26,7 @@ require_once APP_GAMEMODULE_PATH . "module/table/table.game.php";
 require_once __DIR__ . "/constants.inc.php";
 
 class Game extends \Table {
+    private Validator $validator;
     /**
      * Your global variables labels:
      *
@@ -44,6 +45,8 @@ class Game extends \Table {
         $this->notify->addDecorator(
             fn(string $message, array $args) => $this->decoratePlayerNameNotifArg($message, $args)
         );
+
+        $this->validator = new Validator($this);
     }
 
     public function decoratePlayerNameNotifArg(string $message, array $args): array {
@@ -58,61 +61,13 @@ class Game extends \Table {
         throw new BgaUserException(print_r($content, true));
     }
 
-    private function validatePositionValue(string $color, int $position, int $value) {
-        if (in_array($color, [DIE_RED, DIE_YELLOW])) {
-            if ($position + 2 == $value) {
-                return;
-            }
-        } elseif (in_array($color, [DIE_GREEN, DIE_BLUE])) {
-            if ($position + $value == 12) {
-                return;
-            }
-        } else {
-            throw new BgaVisibleSystemException(clienttranslate("Unexpected color received: $color"));
-        }
-
-        throw new BgaVisibleSystemException(clienttranslate("Position and value do not match"));
-    }
-
-    private function validateValue($color, $value) {
-        $dice = $this->getDice();
-
-        if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
-            $value1 = $dice[DIE_WHITE_1];
-            $value2 = $dice[DIE_WHITE_2];
-
-            if ($value == $value1 + $value2) {
-                return true;
-            }
-        } else {
-            foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
-                $value1 = $dice[$color];
-                $value2 = $dice[$white];
-
-                if ($value == $value1 + $value2) {
-                    return true;
-                }
-            }
-        }
-
-        throw new BgaVisibleSystemException(clienttranslate("The sent value does not match any valid combination"));
-    }
-
-    private function validatePosition($player_id, $color, $position) {
-        $highest_position = $this->getHighestCheckedBoxPosition($player_id, $color);
-
-        if ($highest_position >= $position) {
-            throw new BgaUserException(clienttranslate("Invalid move"));
-        }
-    }
-
     public function actCheckBox(string $color, int $position, int $value): void {
         // Retrieve the current player ID. This is the player who sent the check box action
         $player_id = (int) $this->getCurrentPlayerId();
 
-        $this->validatePositionValue($color, $position, $value);
-        $this->validateValue($color, $value);
-        $this->validatePosition($player_id, $color, $position);
+        $this->validator->validatePositionValue($color, $position, $value);
+        $this->validator->validateValue($color, $value);
+        $this->validator->validatePosition($player_id, $color, $position);
 
         $this->persistCheckedBox($player_id, $color, $position);
 
