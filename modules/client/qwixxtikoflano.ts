@@ -194,7 +194,8 @@ export class QwixxTikoflano extends SetupGamegui {
           this.makeBoxClickable(row_color, white_dice_sum);
         }
         break;
-      case "useColorSum":
+      case "mustUseColorSum":
+      case "mayUseColorSum":
         // Mark clickable boxes
         const possible_sums: NumberMap = {
           red: { white_1: -1, white_2: -1 },
@@ -215,7 +216,9 @@ export class QwixxTikoflano extends SetupGamegui {
             const compareFn = isLTRRow(row_color) ? Math.min : Math.max;
             this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));
           }
-          this.makeFirstPenaltyBoxClickable();
+          if (stateName === "mustUseColorSum") {
+            this.makeFirstPenaltyBoxClickable();
+          }
         }
 
         break;
@@ -226,12 +229,7 @@ export class QwixxTikoflano extends SetupGamegui {
   override onLeavingState(stateName: BGA.ActiveGameState["name"]): void {
     console.log("Leaving state: " + stateName);
 
-    switch (stateName) {
-      case "useWhiteSum":
-      case "useColorSum":
-        this.clearClickHandlers();
-        break;
-    }
+    this.clearClickHandlers();
   }
 
   /** See {@link BGA.Gamegui#onUpdateActionButtons} for more information. */
@@ -242,6 +240,7 @@ export class QwixxTikoflano extends SetupGamegui {
 
     switch (stateName) {
       case "useWhiteSum":
+      case "mayUseColorSum":
         if (this.isCurrentPlayerActive()) {
           this.addActionButton("button_pass", _("Pass"), onPass);
         } else {

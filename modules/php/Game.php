@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace Bga\Games\QwixxTikoflano;
 
 use BgaUserException;
+use BgaSystemException;
 use BgaVisibleSystemException;
 
 require_once APP_GAMEMODULE_PATH . "module/table/table.game.php";
@@ -53,6 +54,10 @@ class Game extends \Table {
         return $args;
     }
 
+    private function debugx($content) {
+        throw new BgaUserException(print_r($content, true));
+    }
+
     private function validatePositionValue(string $color, int $position, int $value) {
         if (in_array($color, [DIE_RED, DIE_YELLOW])) {
             if ($position + 2 == $value) {
@@ -67,10 +72,6 @@ class Game extends \Table {
         }
 
         throw new BgaVisibleSystemException(clienttranslate("Position and value do not match"));
-    }
-
-    private function debugx($content) {
-        throw new BgaUserException(print_r($content, true));
     }
 
     private function validateValue($color, $value) {
@@ -127,10 +128,12 @@ class Game extends \Table {
             ]
         );
 
-        // at the end of the action, move to the next state
-
         if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
-            $this->gamestate->setPlayerNonMultiactive($player_id, TN_CHECK_BOX);
+            if ($player_id == $this->getActivePlayerId()) {
+                $this->globals->set(GL_WHITE_DICE_USED, true);
+            }
+
+            $this->transitionAfterWhiteDice($player_id);
         } else {
             $this->gamestate->nextState(TN_CHECK_BOX);
         }
@@ -157,15 +160,39 @@ class Game extends \Table {
     }
 
     public function actPass(): void {
+        $current_state_name = $this->gamestate->state()["name"];
+
+        switch ($current_state_name) {
+            case ST_USE_WHITE_SUM_NAME:
+                $this->passOnWhiteDice();
+                break;
+            case ST_MAY_USE_COLOR_SUM_NAME:
+                $this->passOnColorDice();
+                break;
+            default:
+                throw new BgaSystemException("Passing is not allowed in this state: $current_state_name");
+                break;
+        }
+    }
+
+    private function passOnWhiteDice(): void {
         // Retrieve the current player ID. This is the player who sent the pass action, not the active player.
         $player_id = (int) $this->getCurrentPlayerId();
 
-        if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
-            $this->gamestate->setPlayerNonMultiactive($player_id, TN_PASS);
-            return;
+        $this->transitionAfterWhiteDice($player_id);
+    }
+
+    private function passOnColorDice(): void {
+        $this->gamestate->nextState(TN_PASS);
+    }
+
+    private function transitionAfterWhiteDice($player_id) {
+        $transition = TN_PASS;
+        if ($this->globals->get(GL_WHITE_DICE_USED, false)) {
+            $transition = TN_CHECK_BOX;
         }
 
-        // TODO: handle passing on color die
+        $this->gamestate->setPlayerNonMultiactive($player_id, $transition);
     }
 
     /**
@@ -199,6 +226,7 @@ class Game extends \Table {
         $this->activeNextPlayer();
 
         $new_dice = $this->rollDice();
+        $this->globals->set(GL_WHITE_DICE_USED, false);
 
         // Notify all players about the dice roll
         $this->notify->all(NT_DICE_ROLLED, "", ["dice" => $new_dice]);

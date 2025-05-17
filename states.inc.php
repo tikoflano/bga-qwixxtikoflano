@@ -69,16 +69,29 @@ $machinestates = [
         "action" => "stMakeEveryoneActive",
         "possibleactions" => [ACT_PASS, ACT_CHECK_BOX],
         "transitions" => [
-            TN_CHECK_BOX => ST_USE_COLOR_SUM,
-            TN_PASS => ST_USE_COLOR_SUM,
+            TN_CHECK_BOX => ST_MAY_USE_COLOR_SUM,
+            TN_PASS => ST_MUST_USE_COLOR_SUM,
             TN_ZOMBIE_PASS => ST_NEXT_PLAYER,
         ],
     ],
 
-    ST_USE_COLOR_SUM => [
-        "name" => ST_USE_COLOR_SUM_NAME,
-        "description" => clienttranslate('${actplayer} may check a box based on the colored die'),
-        "descriptionmyturn" => clienttranslate('${you} may check a box based on the colored die'),
+    ST_MUST_USE_COLOR_SUM => [
+        "name" => ST_MUST_USE_COLOR_SUM_NAME,
+        "description" => clienttranslate('${actplayer} must check a number box or a penalty box'),
+        "descriptionmyturn" => clienttranslate('${you} must check a number box or a penalty box'),
+        "type" => "activeplayer",
+        "possibleactions" => [ACT_CHECK_BOX, ACT_CHECK_PENALTY_BOX],
+        "transitions" => [
+            TN_CHECK_BOX => ST_NEXT_PLAYER,
+            TN_CHECK_PENALTY_BOX => ST_NEXT_PLAYER,
+            TN_ZOMBIE_PASS => ST_NEXT_PLAYER,
+        ],
+    ],
+
+    ST_MAY_USE_COLOR_SUM => [
+        "name" => ST_MAY_USE_COLOR_SUM_NAME,
+        "description" => clienttranslate('${actplayer} may check a number box or pass'),
+        "descriptionmyturn" => clienttranslate('${you} may check a number box or pass'),
         "type" => "activeplayer",
         "possibleactions" => [ACT_PASS, ACT_CHECK_BOX, ACT_CHECK_PENALTY_BOX],
         "transitions" => [

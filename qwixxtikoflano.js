@@ -219,7 +219,8 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                         this.makeBoxClickable(row_color, white_dice_sum);
                     }
                     break;
-                case "useColorSum":
+                case "mustUseColorSum":
+                case "mayUseColorSum":
                     var possible_sums = {
                         red: { white_1: -1, white_2: -1 },
                         yellow: { white_1: -1, white_2: -1 },
@@ -239,19 +240,16 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                             var compareFn = (0, utils_2.isLTRRow)(row_color) ? Math.min : Math.max;
                             this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));
                         }
-                        this.makeFirstPenaltyBoxClickable();
+                        if (stateName === "mustUseColorSum") {
+                            this.makeFirstPenaltyBoxClickable();
+                        }
                     }
                     break;
             }
         };
         QwixxTikoflano.prototype.onLeavingState = function (stateName) {
             console.log("Leaving state: " + stateName);
-            switch (stateName) {
-                case "useWhiteSum":
-                case "useColorSum":
-                    this.clearClickHandlers();
-                    break;
-            }
+            this.clearClickHandlers();
         };
         QwixxTikoflano.prototype.onUpdateActionButtons = function () {
             var _a = [];
@@ -264,6 +262,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                 return;
             switch (stateName) {
                 case "useWhiteSum":
+                case "mayUseColorSum":
                     if (this.isCurrentPlayerActive()) {
                         this.addActionButton("button_pass", _("Pass"), userActionsHandlers_1.onPass);
                     }
