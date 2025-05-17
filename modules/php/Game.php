@@ -27,6 +27,7 @@ require_once __DIR__ . "/constants.inc.php";
 
 class Game extends \Table {
     private Validator $validator;
+
     /**
      * Your global variables labels:
      *
@@ -49,16 +50,37 @@ class Game extends \Table {
         $this->validator = new Validator($this);
     }
 
-    public function decoratePlayerNameNotifArg(string $message, array $args): array {
-        // if the notif message contains ${player_name} but it isn't set in the args, add it on args from $args['player_id']
-        if (isset($args["player_id"]) && !isset($args["player_name"]) && str_contains($message, '${player_name}')) {
-            $args["player_name"] = $this->getPlayerNameById($args["player_id"]);
+    /**
+     * ------------
+     * USER ACTIONS
+     * ------------
+     */
+
+    public function actPass(): void {
+        $current_state_name = $this->gamestate->state()["name"];
+
+        switch ($current_state_name) {
+            case ST_USE_WHITE_SUM_NAME:
+                $this->passOnWhiteDice();
+                break;
+            case ST_MAY_USE_COLOR_SUM_NAME:
+                $this->passOnColorDice();
+                break;
+            default:
+                throw new BgaSystemException("Passing is not allowed in this state: $current_state_name");
+                break;
         }
-        return $args;
     }
 
-    private function debugx($content) {
-        throw new BgaUserException(print_r($content, true));
+    private function passOnWhiteDice(): void {
+        // Retrieve the current player ID. This is the player who sent the pass action, not the active player.
+        $player_id = (int) $this->getCurrentPlayerId();
+
+        $this->transitionAfterWhiteDice($player_id);
+    }
+
+    private function passOnColorDice(): void {
+        $this->gamestate->nextState(TN_PASS);
     }
 
     public function actCheckBox(string $color, int $position, int $value): void {
@@ -69,7 +91,7 @@ class Game extends \Table {
         $this->validator->validateValue($color, $value);
         $this->validator->validatePosition($player_id, $color, $position);
 
-        $this->persistCheckedBox($player_id, $color, $position);
+        $this->setCheckedBox($player_id, $color, $position);
 
         // Notify all players about the checked box
         $this->notify->all(
@@ -103,7 +125,7 @@ class Game extends \Table {
             throw new BgaVisibleSystemException(clienttranslate("penalty count has already reached the limit"));
         }
 
-        $this->persistPlayerPenalty($player_id);
+        $this->increasePlayerPenalty($player_id);
 
         // Notify all players about the player penalty check
         $this->notify->all(NT_PENALTY_BOX_CHECKED, clienttranslate('${player_name} checks a penalty box'), [
@@ -112,33 +134,6 @@ class Game extends \Table {
         ]);
 
         $this->gamestate->nextState(TN_CHECK_PENALTY_BOX);
-    }
-
-    public function actPass(): void {
-        $current_state_name = $this->gamestate->state()["name"];
-
-        switch ($current_state_name) {
-            case ST_USE_WHITE_SUM_NAME:
-                $this->passOnWhiteDice();
-                break;
-            case ST_MAY_USE_COLOR_SUM_NAME:
-                $this->passOnColorDice();
-                break;
-            default:
-                throw new BgaSystemException("Passing is not allowed in this state: $current_state_name");
-                break;
-        }
-    }
-
-    private function passOnWhiteDice(): void {
-        // Retrieve the current player ID. This is the player who sent the pass action, not the active player.
-        $player_id = (int) $this->getCurrentPlayerId();
-
-        $this->transitionAfterWhiteDice($player_id);
-    }
-
-    private function passOnColorDice(): void {
-        $this->gamestate->nextState(TN_PASS);
     }
 
     private function transitionAfterWhiteDice($player_id) {
@@ -346,8 +341,22 @@ class Game extends \Table {
         throw new \feException("Zombie mode not supported at this game state: \"{$state_name}\".");
     }
 
-    function getDice() {
-        return self::getCollectionFromDB("SELECT color,value FROM dice", true);
+    /**
+     * ---------
+     * UTILITIES
+     * ---------
+     */
+
+    public function decoratePlayerNameNotifArg(string $message, array $args): array {
+        // if the notif message contains ${player_name} but it isn't set in the args, add it on args from $args['player_id']
+        if (isset($args["player_id"]) && !isset($args["player_name"]) && str_contains($message, '${player_name}')) {
+            $args["player_name"] = $this->getPlayerNameById($args["player_id"]);
+        }
+        return $args;
+    }
+
+    private function debugx($content) {
+        throw new BgaUserException(print_r($content, true));
     }
 
     function rollDice() {
@@ -360,7 +369,54 @@ class Game extends \Table {
             DIE_BLUE => bga_rand(1, 6),
         ];
 
-        self::DbQuery(
+        $this->setDice($dice);
+
+        return $dice;
+    }
+
+    /**
+     * ---------------
+     * DATABASE ACCESS
+     * ---------------
+     */
+
+    /**
+     * GETTERS
+     */
+
+    public function getCheckedBoxes() {
+        return $this->getObjectListFromDB("SELECT * FROM checkedboxes");
+    }
+
+    public function getHighestCheckedBoxPosition($player_id, $color) {
+        $escaped_player_id = $this->escapeStringForDB($player_id);
+        $escaped_color = $this->escapeStringForDB($color);
+
+        $highest_position = $this->getUniqueValueFromDB(
+            "SELECT position FROM checkedboxes WHERE player_id = '$escaped_player_id' and color = '$escaped_color' ORDER BY position DESC LIMIT 1"
+        );
+
+        return is_null($highest_position) ? -1 : $highest_position;
+    }
+
+    public function getPlayerPenaltyCount($player_id) {
+        $escaped_player_id = $this->escapeStringForDB($player_id);
+
+        return $this->getUniqueValueFromDB(
+            "SELECT `player_penalty_count` FROM `player` WHERE player_id = $escaped_player_id"
+        );
+    }
+
+    public function getDice() {
+        return $this->getCollectionFromDB("SELECT color,value FROM dice", true);
+    }
+
+    /**
+     * SETTERS
+     */
+
+    public function setDice($dice) {
+        $this->DbQuery(
             "INSERT INTO dice (color,value) VALUES
                 ('" .
                 DIE_WHITE_1 .
@@ -396,48 +452,23 @@ class Game extends \Table {
                 ON DUPLICATE KEY UPDATE
                 color=VALUES(color), value=VALUES(value)"
         );
-
-        return $dice;
     }
 
-    function getCheckedBoxes() {
-        return self::getObjectListFromDB("SELECT * FROM checkedboxes");
-    }
+    public function setCheckedBox($player_id, $color, $position) {
+        $escaped_player_id = $this->escapeStringForDB($player_id);
+        $escaped_color = $this->escapeStringForDB($color);
+        $escaped_position = $this->escapeStringForDB($position);
 
-    function getHighestCheckedBoxPosition($player_id, $color) {
-        $escaped_player_id = self::escapeStringForDB($player_id);
-        $escaped_color = self::escapeStringForDB($color);
-
-        $highest_position = self::getUniqueValueFromDB(
-            "SELECT position FROM checkedboxes WHERE player_id = '$escaped_player_id' and color = '$escaped_color' ORDER BY position DESC LIMIT 1"
-        );
-
-        return is_null($highest_position) ? -1 : $highest_position;
-    }
-
-    function persistCheckedBox($player_id, $color, $position) {
-        $escaped_player_id = self::escapeStringForDB($player_id);
-        $escaped_color = self::escapeStringForDB($color);
-        $escaped_position = self::escapeStringForDB($position);
-
-        self::DbQuery(
+        $this->DbQuery(
             "INSERT INTO checkedboxes (player_id, color, position) VALUES ($escaped_player_id, '$escaped_color', $escaped_position)"
         );
     }
 
-    function persistPlayerPenalty($player_id) {
-        $escaped_player_id = self::escapeStringForDB($player_id);
+    public function increasePlayerPenalty($player_id) {
+        $escaped_player_id = $this->escapeStringForDB($player_id);
 
-        self::DbQuery(
+        $this->DbQuery(
             "UPDATE player SET player_penalty_count = player_penalty_count + 1 WHERE player_id = $escaped_player_id"
-        );
-    }
-
-    function getPlayerPenaltyCount($player_id) {
-        $escaped_player_id = self::escapeStringForDB($player_id);
-
-        return self::getUniqueValueFromDB(
-            "SELECT `player_penalty_count` FROM `player` WHERE player_id = $escaped_player_id"
         );
     }
 }

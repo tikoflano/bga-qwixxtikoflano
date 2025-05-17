@@ -2,7 +2,6 @@
 namespace Bga\Games\QwixxTikoflano;
 
 use BgaUserException;
-use BgaSystemException;
 use BgaVisibleSystemException;
 
 class Validator {
