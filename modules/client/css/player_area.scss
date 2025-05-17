@@ -46,11 +46,6 @@
         background-image: url(img/cross.png);
         background-size: cover;
       }
-
-      &.invalid:not(.crossed) {
-        background-color: white;
-        opacity: 0.75;
-      }
     }
   }
 }

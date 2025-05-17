@@ -52,10 +52,6 @@
   background-image: url(img/cross.png);
   background-size: cover;
 }
-.player_area .player_board .box.invalid:not(.crossed) {
-  background-color: white;
-  opacity: 0.75;
-}
 
 .die {
   display: inline-block;
