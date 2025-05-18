@@ -95,6 +95,18 @@ class Game extends \Table {
             ]
         );
 
+        // If checking the last number, also check the lock
+        if ($position == 10) {
+            DBAccesor::setCheckedBox($player_id, $color, 11);
+
+            // Notify all players about the checked lock
+            $this->notify->all(NT_BOX_CHECKED, clienttranslate('${player_name} has completed the ${color} row'), [
+                "player_id" => $player_id,
+                "color" => $color,
+                "position" => 11,
+            ]);
+        }
+
         Utility::notifyScore($player_id, [$this->notify, "all"]);
 
         if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
