@@ -60,26 +60,18 @@ class Game extends \Table {
 
         switch ($current_state_name) {
             case ST_USE_WHITE_SUM_NAME:
-                $this->passOnWhiteDice();
+                // Retrieve the current player ID. This is the player who sent the pass action, not the active player.
+                $player_id = (int) $this->getCurrentPlayerId();
+
+                $this->transitionAfterWhiteDice($player_id);
                 break;
             case ST_MAY_USE_COLOR_SUM_NAME:
-                $this->passOnColorDice();
+                $this->gamestate->nextState(TN_PASS);
                 break;
             default:
                 throw new BgaSystemException("Passing is not allowed in this state: $current_state_name");
                 break;
         }
-    }
-
-    private function passOnWhiteDice(): void {
-        // Retrieve the current player ID. This is the player who sent the pass action, not the active player.
-        $player_id = (int) $this->getCurrentPlayerId();
-
-        $this->transitionAfterWhiteDice($player_id);
-    }
-
-    private function passOnColorDice(): void {
-        $this->gamestate->nextState(TN_PASS);
     }
 
     public function actCheckBox(string $color, int $position, int $value): void {
