@@ -20,8 +20,8 @@
 .player_area .player_board {
   background-image: url(img/qwixx_board.jpeg);
   width: 500px;
+  height: 254px;
   position: relative;
-  aspect-ratio: 946/480;
   background-size: cover;
 }
 .player_area .player_board .box {
@@ -44,8 +44,8 @@
 .player_area .player_board .box.lock {
   left: 460px;
   top: 20px;
-  aspect-ratio: 1/1;
   width: 27px;
+  height: 27px;
   border-radius: 100%;
 }
 .player_area .player_board .box.crossed {
