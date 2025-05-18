@@ -104,6 +104,8 @@ class Game extends \Table {
             ]
         );
 
+        Utility::notifyScore($player_id, [$this->notify, "all"]);
+
         if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
             if ($player_id == $this->getActivePlayerId()) {
                 $this->globals->set(GL_WHITE_DICE_USED, true);
@@ -131,6 +133,8 @@ class Game extends \Table {
             "player_id" => $player_id,
             "penalty_count" => $current_penalty_count + 1,
         ]);
+
+        Utility::notifyScore($player_id, [$this->notify, "all"]);
 
         $this->gamestate->nextState(TN_CHECK_PENALTY_BOX);
     }
@@ -171,16 +175,6 @@ class Game extends \Table {
 
         // Give some extra time to the active player when he completed an action
         $this->giveExtraTime($player_id);
-
-        $score = Utility::calculateScore($player_id);
-
-        $this->notify->all(
-            NT_SCORE_CHANGED,
-            "",
-            $score + [
-                "player_id" => $player_id,
-            ]
-        );
 
         $current_penalty_count = DBAccesor::getPlayerPenaltyCount($player_id);
 

@@ -35,15 +35,16 @@ class Utility {
         return $dice;
     }
 
-    public static function calculateScore($player_id) {
+    public static function notifyScore(int $player_id, callable $notify_fn) {
         $score_per_color = DBAccesor::getScorePerColor($player_id);
         $total_score = array_reduce(array_values($score_per_color), fn($acc, $entry) => $acc + $entry["score"], 0);
 
         DBAccesor::setPlayerScore($player_id, $total_score);
 
-        return [
+        $notify_fn(NT_SCORE_CHANGED, "", [
+            "player_id" => $player_id,
             "score_per_color" => $score_per_color,
             "total_score" => $total_score,
-        ];
+        ]);
     }
 }
