@@ -5,13 +5,7 @@ use BgaUserException;
 use BgaVisibleSystemException;
 
 class Validator {
-    private Game $game;
-
-    public function __construct(Game $game) {
-        $this->game = $game;
-    }
-
-    public function validatePositionValue(string $color, int $position, int $value) {
+    public static function validatePositionValue(string $color, int $position, int $value) {
         if (in_array($color, [DIE_RED, DIE_YELLOW])) {
             if ($position + 2 == $value) {
                 return;
@@ -27,10 +21,10 @@ class Validator {
         throw new BgaVisibleSystemException(clienttranslate("Position and value do not match"));
     }
 
-    public function validateValue($color, $value) {
-        $dice = $this->game->getDice();
+    public static function validateValue($game_state, $color, $value) {
+        $dice = DBAccesor::getDice();
 
-        if ($this->game->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
+        if ($game_state == ST_USE_WHITE_SUM_NAME) {
             $value1 = $dice[DIE_WHITE_1];
             $value2 = $dice[DIE_WHITE_2];
 
@@ -51,8 +45,8 @@ class Validator {
         throw new BgaVisibleSystemException(clienttranslate("The sent value does not match any valid combination"));
     }
 
-    public function validatePosition($player_id, $color, $position) {
-        $highest_position = $this->game->getHighestCheckedBoxPosition($player_id, $color);
+    public static function validatePosition($player_id, $color, $position) {
+        $highest_position = DBAccesor::getHighestCheckedBoxPosition($player_id, $color);
 
         if ($highest_position >= $position) {
             throw new BgaUserException(clienttranslate("Invalid move"));

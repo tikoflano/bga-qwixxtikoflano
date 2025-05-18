@@ -26,8 +26,6 @@ require_once APP_GAMEMODULE_PATH . "module/table/table.game.php";
 require_once __DIR__ . "/constants.inc.php";
 
 class Game extends \Table {
-    private Validator $validator;
-
     /**
      * Your global variables labels:
      *
@@ -44,10 +42,11 @@ class Game extends \Table {
         $this->initGameStateLabels([]);
 
         $this->notify->addDecorator(
-            fn(string $message, array $args) => $this->decoratePlayerNameNotifArg($message, $args)
+            fn(string $message, array $args) => Utility::decoratePlayerNameNotifArg($message, $args, [
+                $this,
+                "getPlayerNameById",
+            ])
         );
-
-        $this->validator = new Validator($this);
     }
 
     /**
@@ -87,11 +86,11 @@ class Game extends \Table {
         // Retrieve the current player ID. This is the player who sent the check box action
         $player_id = (int) $this->getCurrentPlayerId();
 
-        $this->validator->validatePositionValue($color, $position, $value);
-        $this->validator->validateValue($color, $value);
-        $this->validator->validatePosition($player_id, $color, $position);
+        Validator::validatePositionValue($color, $position, $value);
+        Validator::validateValue($this->gamestate->state()["name"], $color, $value);
+        Validator::validatePosition($player_id, $color, $position);
 
-        $this->setCheckedBox($player_id, $color, $position);
+        DBAccesor::setCheckedBox($player_id, $color, $position);
 
         // Notify all players about the checked box
         $this->notify->all(
@@ -104,8 +103,6 @@ class Game extends \Table {
                 "value" => $value,
             ]
         );
-
-        $this->notifyScore($player_id);
 
         if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
             if ($player_id == $this->getActivePlayerId()) {
@@ -121,21 +118,19 @@ class Game extends \Table {
     public function actCheckPenaltyBox(): void {
         // Retrieve the current player ID. This is the player who sent the penalty action
         $player_id = (int) $this->getCurrentPlayerId();
-        $current_penalty_count = $this->getPlayerPenaltyCount($player_id);
+        $current_penalty_count = DBAccesor::getPlayerPenaltyCount($player_id);
 
         if ($current_penalty_count >= 4) {
             throw new BgaVisibleSystemException(clienttranslate("penalty count has already reached the limit"));
         }
 
-        $this->increasePlayerPenalty($player_id);
+        DBAccesor::increasePlayerPenalty($player_id);
 
         // Notify all players about the player penalty check
         $this->notify->all(NT_PENALTY_BOX_CHECKED, clienttranslate('${player_name} checks a penalty box'), [
             "player_id" => $player_id,
             "penalty_count" => $current_penalty_count + 1,
         ]);
-
-        $this->notifyScore($player_id);
 
         $this->gamestate->nextState(TN_CHECK_PENALTY_BOX);
     }
@@ -177,16 +172,26 @@ class Game extends \Table {
         // Give some extra time to the active player when he completed an action
         $this->giveExtraTime($player_id);
 
-        $current_penalty_count = $this->getPlayerPenaltyCount($player_id);
+        $score = Utility::calculateScore($player_id);
 
-        if ($current_penalty_count == 4 || $this->getCompletedColors() > 1) {
+        $this->notify->all(
+            NT_SCORE_CHANGED,
+            "",
+            $score + [
+                "player_id" => $player_id,
+            ]
+        );
+
+        $current_penalty_count = DBAccesor::getPlayerPenaltyCount($player_id);
+
+        if ($current_penalty_count == 4 || count(DBAccesor::getCompletedColors()) > 1) {
             $this->gamestate->nextState(TN_END_GAME);
             return;
         }
 
         $this->activeNextPlayer();
 
-        $new_dice = $this->rollDice();
+        $new_dice = Utility::rollDice();
         $this->globals->set(GL_WHITE_DICE_USED, false);
 
         // Notify all players about the dice roll
@@ -247,8 +252,8 @@ class Game extends \Table {
         );
 
         // Gather all information about current game situation (visible by player $current_player_id).
-        $result["checkedBoxes"] = $this->getCheckedBoxes();
-        $result["dice"] = $this->getDice();
+        $result["checkedBoxes"] = DBAccesor::getCheckedBoxes();
+        $result["dice"] = DBAccesor::getDice();
 
         return $result;
     }
@@ -308,7 +313,7 @@ class Game extends \Table {
         // $this->initStat("player", "player_teststat1", 0);
 
         // TODO: Setup the initial game situation here.
-        $this->rollDice();
+        Utility::rollDice();
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
@@ -357,154 +362,4 @@ class Game extends \Table {
      * UTILITIES
      * ---------
      */
-
-    public function decoratePlayerNameNotifArg(string $message, array $args): array {
-        // if the notif message contains ${player_name} but it isn't set in the args, add it on args from $args['player_id']
-        if (isset($args["player_id"]) && !isset($args["player_name"]) && str_contains($message, '${player_name}')) {
-            $args["player_name"] = $this->getPlayerNameById($args["player_id"]);
-        }
-        return $args;
-    }
-
-    private function debugx($content) {
-        throw new BgaUserException(print_r($content, true));
-    }
-
-    private function rollDice() {
-        $dice = [
-            DIE_WHITE_1 => bga_rand(1, 6),
-            DIE_WHITE_2 => bga_rand(1, 6),
-            DIE_RED => bga_rand(1, 6),
-            DIE_YELLOW => bga_rand(1, 6),
-            DIE_GREEN => bga_rand(1, 6),
-            DIE_BLUE => bga_rand(1, 6),
-        ];
-
-        $this->setDice($dice);
-
-        return $dice;
-    }
-
-    private function notifyScore($player_id) {
-        $score_per_color = $this->getScorePerColor($player_id);
-        $total_score = array_reduce(array_values($score_per_color), fn($acc, $entry) => $acc + $entry["score"], 0);
-
-        $this->setPlayerScore($player_id, $total_score);
-
-        $this->notify->all(NT_SCORE_CHANGED, "", [
-            "player_id" => $player_id,
-            "score_per_color" => $score_per_color,
-            "total_score" => $total_score,
-        ]);
-    }
-
-    /**
-     * ---------------
-     * DATABASE ACCESS
-     * ---------------
-     */
-
-    /**
-     * GETTERS
-     */
-
-    public function getCheckedBoxes() {
-        return $this->getObjectListFromDB("SELECT * FROM checkedboxes");
-    }
-
-    public function getHighestCheckedBoxPosition($player_id, $color) {
-        $highest_position = $this->getUniqueValueFromDB(
-            "SELECT position FROM checkedboxes WHERE player_id = '$player_id' and color = '$color' ORDER BY position DESC LIMIT 1"
-        );
-
-        return is_null($highest_position) ? -1 : $highest_position;
-    }
-
-    public function getPlayerPenaltyCount($player_id) {
-        return $this->getUniqueValueFromDB("SELECT `player_penalty_count` FROM `player` WHERE player_id = $player_id");
-    }
-
-    public function getDice() {
-        return $this->getCollectionFromDB("SELECT color,value FROM dice", true);
-    }
-
-    function getPlayerScore($player_id) {
-        return $this->getUniqueValueFromDB("SELECT player_score FROM player WHERE player_id='$player_id'");
-    }
-
-    function getScorePerColor($player_id) {
-        return $this->getCollectionFromDB(
-            "SELECT color, COUNT(position) as `count`, CAST((COUNT(position) * (COUNT(position) + 1) / 2) AS UNSIGNED) as score 
-                FROM `checkedboxes` WHERE player_id = '$player_id' GROUP BY color"
-        );
-    }
-
-    public function getCompletedColors() {
-        return $this->getCollectionFromDB("SELECT DISTINCT color FROM `checkedboxes` WHERE position = 11", true);
-    }
-
-    /**
-     * SETTERS
-     */
-
-    public function setDice($dice) {
-        $this->DbQuery(
-            "INSERT INTO dice (color,value) VALUES
-                ('" .
-                DIE_WHITE_1 .
-                "', 
-                '" .
-                $dice[DIE_WHITE_1] .
-                "'),
-                ('" .
-                DIE_WHITE_2 .
-                "', '" .
-                $dice[DIE_WHITE_2] .
-                "'),
-                ('" .
-                DIE_RED .
-                "', '" .
-                $dice[DIE_RED] .
-                "'),
-                ('" .
-                DIE_YELLOW .
-                "', '" .
-                $dice[DIE_YELLOW] .
-                "'),
-                ('" .
-                DIE_GREEN .
-                "', '" .
-                $dice[DIE_GREEN] .
-                "'),
-                ('" .
-                DIE_BLUE .
-                "', '" .
-                $dice[DIE_BLUE] .
-                "')
-                ON DUPLICATE KEY UPDATE
-                color=VALUES(color), value=VALUES(value)"
-        );
-    }
-
-    public function setCheckedBox($player_id, $color, $position) {
-        $escaped_player_id = $this->escapeStringForDB($player_id);
-        $escaped_color = $this->escapeStringForDB($color);
-        $escaped_position = $this->escapeStringForDB($position);
-
-        $this->DbQuery(
-            "INSERT INTO checkedboxes (player_id, color, position) VALUES ($escaped_player_id, '$escaped_color', $escaped_position)"
-        );
-    }
-
-    public function increasePlayerPenalty($player_id) {
-        $escaped_player_id = $this->escapeStringForDB($player_id);
-
-        $this->DbQuery(
-            "UPDATE player SET player_penalty_count = player_penalty_count + 1 WHERE player_id = $escaped_player_id"
-        );
-    }
-
-    function setPlayerScore($player_id, $new_score) {
-        $this->DbQuery("UPDATE player SET player_score='$new_score' WHERE player_id='$player_id'");
-    }
 }
