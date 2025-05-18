@@ -226,20 +226,20 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                     break;
                 case "mustUseColorSum":
                 case "mayUseColorSum":
-                    var possible_sums = {
-                        red: { white_1: -1, white_2: -1 },
-                        yellow: { white_1: -1, white_2: -1 },
-                        green: { white_1: -1, white_2: -1 },
-                        blue: { white_1: -1, white_2: -1 },
-                    };
-                    for (var _d = 0, _e = ["red", "yellow", "green", "blue"]; _d < _e.length; _d++) {
-                        var color_die = _e[_d];
-                        for (var _f = 0, _g = ["white_1", "white_2"]; _f < _g.length; _f++) {
-                            var white_die = _g[_f];
-                            possible_sums[color_die][white_die] = (0, utils_2.getDiceSum)(color_die, white_die);
-                        }
-                    }
                     if (state.active_player == this.player_id) {
+                        var possible_sums = {
+                            red: { white_1: -1, white_2: -1 },
+                            yellow: { white_1: -1, white_2: -1 },
+                            green: { white_1: -1, white_2: -1 },
+                            blue: { white_1: -1, white_2: -1 },
+                        };
+                        for (var _d = 0, _e = ["red", "yellow", "green", "blue"]; _d < _e.length; _d++) {
+                            var color_die = _e[_d];
+                            for (var _f = 0, _g = ["white_1", "white_2"]; _f < _g.length; _f++) {
+                                var white_die = _g[_f];
+                                possible_sums[color_die][white_die] = (0, utils_2.getDiceSum)(color_die, white_die);
+                            }
+                        }
                         for (var _h = 0, _j = (0, utils_2.objectEntries)(possible_sums); _h < _j.length; _h++) {
                             var _k = _j[_h], row_color = _k[0], sum_data = _k[1];
                             var compareFn = (0, utils_2.isLTRRow)(row_color) ? Math.min : Math.max;

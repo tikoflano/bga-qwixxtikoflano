@@ -29,7 +29,7 @@ class Validator {
             $value2 = $dice[DIE_WHITE_2];
 
             if ($value == $value1 + $value2) {
-                return true;
+                return;
             }
         } else {
             foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
@@ -37,7 +37,7 @@ class Validator {
                 $value2 = $dice[$white];
 
                 if ($value == $value1 + $value2) {
-                    return true;
+                    return;
                 }
             }
         }

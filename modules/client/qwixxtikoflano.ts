@@ -201,22 +201,21 @@ export class QwixxTikoflano extends SetupGamegui {
         break;
       case "mustUseColorSum":
       case "mayUseColorSum":
-        // Mark clickable boxes
-        const possible_sums: NumberMap = {
-          red: { white_1: -1, white_2: -1 },
-          yellow: { white_1: -1, white_2: -1 },
-          green: { white_1: -1, white_2: -1 },
-          blue: { white_1: -1, white_2: -1 },
-        };
-
-        for (const color_die of ["red", "yellow", "green", "blue"] as RowColor[]) {
-          for (const white_die of ["white_1", "white_2"] as WhiteDice[]) {
-            possible_sums[color_die][white_die] = getDiceSum(color_die, white_die);
-          }
-        }
-
         // Make boxes clickable for the active player
         if (state.active_player == this.player_id) {
+          const possible_sums: NumberMap = {
+            red: { white_1: -1, white_2: -1 },
+            yellow: { white_1: -1, white_2: -1 },
+            green: { white_1: -1, white_2: -1 },
+            blue: { white_1: -1, white_2: -1 },
+          };
+
+          for (const color_die of ["red", "yellow", "green", "blue"] as RowColor[]) {
+            for (const white_die of ["white_1", "white_2"] as WhiteDice[]) {
+              possible_sums[color_die][white_die] = getDiceSum(color_die, white_die);
+            }
+          }
+
           for (const [row_color, sum_data] of objectEntries(possible_sums)) {
             const compareFn = isLTRRow(row_color) ? Math.min : Math.max;
             this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));

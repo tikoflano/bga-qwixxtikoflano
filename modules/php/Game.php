@@ -49,6 +49,19 @@ class Game extends \Table {
     }
 
     /**
+     * ----
+     * ARGS
+     * ----
+     */
+
+    public function argValidModes() {
+        $dice = DBAccesor::getDice();
+        $dice_combinations = Utility::getDiceCombination($dice);
+
+        return [$dice_combinations];
+    }
+
+    /**
      * ------------
      * USER ACTIONS
      * ------------

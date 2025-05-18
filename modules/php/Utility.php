@@ -47,4 +47,25 @@ class Utility {
             "total_score" => $total_score,
         ]);
     }
+
+    /**
+     * To be used to generate valid moves, delete if this won't happen in the backend
+     */
+    public static function getDiceCombination($dice) {
+        $response = [
+            DIE_WHITE_1 => [DIE_WHITE_2 => $dice[DIE_WHITE_1] + $dice[DIE_WHITE_2]],
+            DIE_WHITE_2 => [DIE_WHITE_1 => $dice[DIE_WHITE_1] + $dice[DIE_WHITE_2]],
+        ];
+
+        foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
+            foreach ([DIE_RED, DIE_YELLOW, DIE_GREEN, DIE_BLUE] as $color) {
+                $value1 = $dice[$white];
+                $value2 = $dice[$color];
+
+                $response[$white][$color] = $value1 + $value2;
+            }
+        }
+
+        return $response;
+    }
 }
