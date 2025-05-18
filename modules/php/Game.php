@@ -179,7 +179,7 @@ class Game extends \Table {
 
         $current_penalty_count = $this->getPlayerPenaltyCount($player_id);
 
-        if ($current_penalty_count == 4) {
+        if ($current_penalty_count == 4 || $this->getCompletedColors() > 1) {
             $this->gamestate->nextState(TN_END_GAME);
             return;
         }
@@ -437,6 +437,10 @@ class Game extends \Table {
             "SELECT color, COUNT(position) as `count`, CAST((COUNT(position) * (COUNT(position) + 1) / 2) AS UNSIGNED) as score 
                 FROM `checkedboxes` WHERE player_id = '$player_id' GROUP BY color"
         );
+    }
+
+    public function getCompletedColors() {
+        return $this->getCollectionFromDB("SELECT DISTINCT color FROM `checkedboxes` WHERE position = 11", true);
     }
 
     /**
