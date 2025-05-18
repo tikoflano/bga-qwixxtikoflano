@@ -28,6 +28,16 @@ class DBAccesor extends \Table {
         return self::getObjectListFromDB("SELECT * FROM checkedboxes");
     }
 
+    public static function getCheckedBoxesFromPlayer(int $player_id) {
+        $response = self::getCollectionFromDB(
+            "SELECT color, GROUP_CONCAT(position) as checkedboxes FROM `checkedboxes` WHERE player_id = $player_id GROUP BY color"
+        );
+
+        array_walk($response, fn(&$item) => ($item = explode(",", $item["checkedboxes"])));
+
+        return $response;
+    }
+
     public static function getHighestCheckedBoxPosition($player_id, $color) {
         $highest_position = self::getUniqueValueFromDB(
             "SELECT position FROM checkedboxes WHERE player_id = '$player_id' and color = '$color' ORDER BY position DESC LIMIT 1"

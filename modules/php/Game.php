@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace Bga\Games\QwixxTikoflano;
 
-use BgaUserException;
 use BgaSystemException;
 use BgaVisibleSystemException;
 
