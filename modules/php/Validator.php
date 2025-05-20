@@ -13,15 +13,15 @@ class Validator {
 
     public static function validateValue(string $game_state, string $color, int $value) {
         $dice = DBAccesor::getDice();
-        $dice_combination = Utility::getDiceCombination($dice);
+        $dice_combinations = Utility::getDiceCombination($dice);
 
         if ($game_state == ST_USE_WHITE_SUM_NAME) {
-            if ($value == $dice_combination[DIE_WHITE_1][DIE_WHITE_1]) {
+            if ($value == $dice_combinations[DIE_WHITE_1][DIE_WHITE_2]) {
                 return;
             }
         } else {
             foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
-                if ($value == $dice_combination[$white][$color]) {
+                if ($value == $dice_combinations[$white][$color]) {
                     return;
                 }
             }
