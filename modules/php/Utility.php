@@ -2,6 +2,7 @@
 namespace Bga\Games\QwixxTikoflano;
 
 use BgaUserException;
+use BgaSystemException;
 
 class Utility {
     public static function decoratePlayerNameNotifArg(
@@ -48,9 +49,6 @@ class Utility {
         ]);
     }
 
-    /**
-     * To be used to generate valid moves, delete if this won't happen in the backend
-     */
     public static function getDiceCombination($dice) {
         $response = [
             DIE_WHITE_1 => [DIE_WHITE_2 => $dice[DIE_WHITE_1] + $dice[DIE_WHITE_2]],
@@ -64,6 +62,72 @@ class Utility {
 
                 $response[$white][$color] = $value1 + $value2;
             }
+        }
+
+        return $response;
+    }
+
+    public static function isIncreasingColor($color) {
+        return in_array($color, [DIE_RED, DIE_YELLOW]);
+    }
+
+    public static function positionToValue($color, $position) {
+        if (self::isIncreasingColor($color)) {
+            return $position + 2;
+        }
+
+        return 12 - $position;
+    }
+
+    public static function valueToPosition($color, $value) {
+        if (self::isIncreasingColor($color)) {
+            return $value - 2;
+        }
+
+        return 12 - $value;
+    }
+
+    public static function getPlayerValidMoves($state, $dice, $checked_boxes) {
+        $response = [];
+        $dice_combinations = self::getDiceCombination($dice);
+
+        if ($state == ST_USE_WHITE_SUM_NAME) {
+            $sum = $dice_combinations[DIE_WHITE_1][DIE_WHITE_2];
+
+            foreach ([DIE_RED, DIE_YELLOW, DIE_GREEN, DIE_BLUE] as $color) {
+                $sum_position = self::valueToPosition($color, $sum);
+                if (!isset($checked_boxes[$color]) || $sum_position > $checked_boxes[$color][0]) {
+                    array_push($response, [
+                        "color" => $color,
+                        "position" => $sum_position,
+                        "value" => $sum,
+                    ]);
+                }
+            }
+        } elseif ($state == ST_MAY_USE_COLOR_SUM_NAME || $state == ST_MUST_USE_COLOR_SUM_NAME) {
+            $sum = $dice[DIE_WHITE_1] + $dice[DIE_WHITE_2];
+
+            foreach ([DIE_RED, DIE_YELLOW, DIE_GREEN, DIE_BLUE] as $color) {
+                $color_min_pos = 100;
+                foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
+                    $sum = $dice_combinations[$white][$color];
+                    $sum_position = self::valueToPosition($color, $sum);
+
+                    if (!isset($checked_boxes[$color]) || $sum_position > $checked_boxes[$color][0]) {
+                        $color_min_pos = min($color_min_pos, $sum_position);
+                    }
+                }
+
+                if ($color_min_pos != 100) {
+                    array_push($response, [
+                        "color" => $color,
+                        "position" => $color_min_pos,
+                        "value" => Utility::positionToValue($color, $color_min_pos),
+                    ]);
+                }
+            }
+        } else {
+            throw new BgaSystemException("Trying to get valid moves for invalid state: $state");
         }
 
         return $response;

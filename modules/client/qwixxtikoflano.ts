@@ -190,43 +190,6 @@ export class QwixxTikoflano extends SetupGamegui {
   /** See {@link BGA.Gamegui#onEnteringState} for more information. */
   override onEnteringState(...[stateName, state]: BGA.GameStateTuple<["name", "state"]>): void {
     console.log("Entering state: " + stateName, state);
-
-    switch (stateName) {
-      case "useWhiteSum":
-        // Mark clickable boxes
-        const white_dice_sum = getDiceSum("white_1", "white_2");
-        for (const [row_color] of objectEntries(this.max_checked_box_position)) {
-          this.makeBoxClickable(row_color, white_dice_sum);
-        }
-        break;
-      case "mustUseColorSum":
-      case "mayUseColorSum":
-        // Make boxes clickable for the active player
-        if (state.active_player == this.player_id) {
-          const possible_sums: NumberMap = {
-            red: { white_1: -1, white_2: -1 },
-            yellow: { white_1: -1, white_2: -1 },
-            green: { white_1: -1, white_2: -1 },
-            blue: { white_1: -1, white_2: -1 },
-          };
-
-          for (const color_die of ["red", "yellow", "green", "blue"] as RowColor[]) {
-            for (const white_die of ["white_1", "white_2"] as WhiteDice[]) {
-              possible_sums[color_die][white_die] = getDiceSum(color_die, white_die);
-            }
-          }
-
-          for (const [row_color, sum_data] of objectEntries(possible_sums)) {
-            const compareFn = isLTRRow(row_color) ? Math.min : Math.max;
-            this.makeBoxClickable(row_color, compareFn(sum_data["white_1"], sum_data["white_2"]));
-          }
-          if (stateName === "mustUseColorSum") {
-            this.makeFirstPenaltyBoxClickable();
-          }
-        }
-
-        break;
-    }
   }
 
   /** See {@link BGA.Gamegui#onLeavingState} for more information. */
@@ -240,17 +203,24 @@ export class QwixxTikoflano extends SetupGamegui {
   override onUpdateActionButtons(...[stateName, args]: BGA.GameStateTuple<["name", "args"]>): void {
     console.log("onUpdateActionButtons: " + stateName, args);
 
-    if (this.isSpectator) return;
+    // This cannot be handled on onEnteringState as player are not active yet in a multipleactiveplayer state
+    // Ref: https://en.doc.boardgamearena.com/Game_interface_logic:_yourgamename.js#File_structure
+    if (!this.isCurrentPlayerActive() || !args["_private"]) {
+      return;
+    }
 
-    switch (stateName) {
-      case "useWhiteSum":
-      case "mayUseColorSum":
-        if (this.isCurrentPlayerActive()) {
-          this.addActionButton("button_pass", _("Pass"), onPass);
-        } else {
-          this.removeActionButtons();
-        }
-        break;
+    if (["useWhiteSum", "mustUseColorSum", "mayUseColorSum"].includes(stateName)) {
+      for (const valid_move of args["_private"]["valid_moves"]) {
+        this.makeBoxClickable(valid_move["color"], valid_move["value"]);
+      }
+    }
+
+    if (stateName === "useWhiteSum" || stateName === "mayUseColorSum") {
+      this.addActionButton("button_pass", _("Pass"), onPass);
+    }
+
+    if (stateName === "mustUseColorSum") {
+      this.makeFirstPenaltyBoxClickable();
     }
   }
 
@@ -316,7 +286,7 @@ export class QwixxTikoflano extends SetupGamegui {
 
   /*
 		Here, you are defining methods to handle player's action (ex: results of mouse click on game objects).
-		
+
 		Most of the time, these methods:
 		- check the action is possible at this game state.
 		- make a call to the game server

@@ -56,9 +56,20 @@ class Game extends \Table {
 
     public function argValidModes() {
         $dice = DBAccesor::getDice();
-        $dice_combinations = Utility::getDiceCombination($dice);
+        $checked_boxes_py_player = DBAccesor::getCheckedBoxesByPlayer();
 
-        return [$dice_combinations];
+        $players = $this->loadPlayersBasicInfos();
+        $private_args = [];
+
+        foreach (array_keys($players) as $player_id) {
+            $private_args[$player_id]["valid_moves"] = Utility::getPlayerValidMoves(
+                $this->gamestate->state()["name"],
+                $dice,
+                $checked_boxes_py_player[$player_id] ?? []
+            );
+        }
+
+        return ["_private" => $private_args];
     }
 
     /**
@@ -200,6 +211,7 @@ class Game extends \Table {
         }
 
         $this->activeNextPlayer();
+        $this->gamestate->setAllPlayersMultiactive();
 
         $new_dice = Utility::rollDice();
         $this->globals->set(GL_WHITE_DICE_USED, false);

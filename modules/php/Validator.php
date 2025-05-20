@@ -6,19 +6,9 @@ use BgaVisibleSystemException;
 
 class Validator {
     public static function validatePositionValue(string $color, int $position, int $value) {
-        if (in_array($color, [DIE_RED, DIE_YELLOW])) {
-            if ($position + 2 == $value) {
-                return;
-            }
-        } elseif (in_array($color, [DIE_GREEN, DIE_BLUE])) {
-            if ($position + $value == 12) {
-                return;
-            }
-        } else {
-            throw new BgaVisibleSystemException(clienttranslate("Unexpected color received: $color"));
+        if (Utility::positionToValue($color, $position) != $value) {
+            throw new BgaVisibleSystemException(clienttranslate("Position and value do not match"));
         }
-
-        throw new BgaVisibleSystemException(clienttranslate("Position and value do not match"));
     }
 
     public static function validateValue(string $game_state, string $color, int $value) {

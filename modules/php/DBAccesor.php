@@ -25,7 +25,36 @@ class DBAccesor extends \Table {
      */
 
     public static function getCheckedBoxes() {
-        return self::getObjectListFromDB("SELECT * FROM checkedboxes");
+        return self::getObjectListFromDB(
+            "SELECT player_id, color, position FROM checkedboxes ORDER BY player_id, color, position DESC"
+        );
+    }
+
+    public static function getCheckedBoxesByPlayer() {
+        $response = self::getCheckedBoxes();
+
+        $grouped = array_reduce(
+            $response,
+            function ($acc, $el) {
+                $player_id = $el["player_id"];
+                $color = $el["color"];
+
+                if (!isset($acc[$player_id])) {
+                    $acc[$player_id] = [];
+                }
+
+                if (!isset($acc[$player_id][$color])) {
+                    $acc[$player_id][$color] = [];
+                }
+
+                array_push($acc[$player_id][$color], $el["position"]);
+
+                return $acc;
+            },
+            []
+        );
+
+        return $grouped;
     }
 
     public static function getCheckedBoxesFromPlayer(int $player_id) {
@@ -60,7 +89,7 @@ class DBAccesor extends \Table {
 
     public static function getScorePerColor($player_id) {
         return self::getCollectionFromDB(
-            "SELECT color, COUNT(position) as `count`, CAST((COUNT(position) * (COUNT(position) + 1) / 2) AS UNSIGNED) as score 
+            "SELECT color, COUNT(position) as `count`, CAST((COUNT(position) * (COUNT(position) + 1) / 2) AS UNSIGNED) as score
                 FROM `checkedboxes` WHERE player_id = '$player_id' GROUP BY color"
         );
     }
@@ -78,7 +107,7 @@ class DBAccesor extends \Table {
             "INSERT INTO dice (color,value) VALUES
                 ('" .
                 DIE_WHITE_1 .
-                "', 
+                "',
                 '" .
                 $dice[DIE_WHITE_1] .
                 "'),
