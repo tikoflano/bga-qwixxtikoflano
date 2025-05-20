@@ -91,12 +91,19 @@ class Utility {
         $response = [];
         $dice_combinations = self::getDiceCombination($dice);
 
+        $isValidPosition = fn($sum_position, $latest_checked_position, $count_checked_boxes) => $sum_position >
+            $latest_checked_position &&
+            ($sum_position != 10 || $count_checked_boxes > 4);
+
         if ($state == ST_USE_WHITE_SUM_NAME) {
             $sum = $dice_combinations[DIE_WHITE_1][DIE_WHITE_2];
 
             foreach ([DIE_RED, DIE_YELLOW, DIE_GREEN, DIE_BLUE] as $color) {
                 $sum_position = self::valueToPosition($color, $sum);
-                if (!isset($checked_boxes[$color]) || $sum_position > $checked_boxes[$color][0]) {
+                $latest_checked_position = ($checked_boxes[$color] ?? [-1])[0];
+                $count_checked_boxes = count($checked_boxes[$color] ?? []);
+
+                if ($isValidPosition($sum_position, $latest_checked_position, $count_checked_boxes)) {
                     array_push($response, [
                         "color" => $color,
                         "position" => $sum_position,
@@ -112,8 +119,10 @@ class Utility {
                 foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
                     $sum = $dice_combinations[$white][$color];
                     $sum_position = self::valueToPosition($color, $sum);
+                    $latest_checked_position = ($checked_boxes[$color] ?? [-1])[0];
+                    $count_checked_boxes = count($checked_boxes[$color] ?? []);
 
-                    if (!isset($checked_boxes[$color]) || $sum_position > $checked_boxes[$color][0]) {
+                    if ($isValidPosition($sum_position, $latest_checked_position, $count_checked_boxes)) {
                         $color_min_pos = min($color_min_pos, $sum_position);
                     }
                 }
