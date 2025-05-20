@@ -166,4 +166,8 @@ class DBAccesor extends \Table {
     public static function setPlayerScore($player_id, $new_score) {
         self::DbQuery("UPDATE player SET player_score='$new_score' WHERE player_id='$player_id'");
     }
+
+    public static function setDiceOutOfPlay($color) {
+        self::DbQuery("UPDATE dice SET in_play = 0 WHERE color='$color'");
+    }
 }

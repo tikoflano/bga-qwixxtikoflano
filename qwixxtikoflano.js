@@ -114,7 +114,18 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
     function setDiceFaces(dice_values) {
         for (var _i = 0, _a = objectEntries(dice_values); _i < _a.length; _i++) {
             var _b = _a[_i], color = _b[0], die_data = _b[1];
-            dojo.byId("die_".concat(color)).dataset["value"] = "".concat(die_data["value"]);
+            var node = dojo.byId("die_".concat(color));
+            if (die_data["in_play"] === "1") {
+                if (!node) {
+                    throw Error("Die element not found: ".concat(color));
+                }
+                node.dataset["value"] = "".concat(die_data["value"]);
+            }
+            else {
+                if (node) {
+                    dojo.destroy(node);
+                }
+            }
         }
     }
 });

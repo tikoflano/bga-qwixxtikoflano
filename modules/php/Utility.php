@@ -21,7 +21,7 @@ class Utility {
         throw new BgaUserException(print_r($content, true));
     }
 
-    public static function rollDice() {
+    public static function rollDice(): void {
         $dice = [
             DIE_WHITE_1 => bga_rand(1, 6),
             DIE_WHITE_2 => bga_rand(1, 6),
@@ -32,8 +32,6 @@ class Utility {
         ];
 
         DBAccesor::setDice($dice);
-
-        return $dice;
     }
 
     public static function notifyScore(int $player_id, callable $notify_fn) {

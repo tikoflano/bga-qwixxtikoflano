@@ -22,7 +22,6 @@ import {
   getPlayerBoard,
   getBoxByPosition,
   isLTRRow,
-  getDiceSum,
   objectEntries,
   setDiceFaces,
   getBoxByValue,

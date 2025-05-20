@@ -120,9 +120,10 @@ class Game extends \Table {
             ]
         );
 
-        // If checking the last number, also check the lock
+        // If checking the last number, also check the lock and remove the die
         if ($position == 10) {
             DBAccesor::setCheckedBox($player_id, $color, 11);
+            DBAccesor::setDiceOutOfPlay($color);
 
             // Notify all players about the checked lock
             $this->notify->all(NT_BOX_CHECKED, clienttranslate('${player_name} has completed the ${color} row'), [
@@ -214,7 +215,8 @@ class Game extends \Table {
         $this->activeNextPlayer();
         $this->gamestate->setAllPlayersMultiactive();
 
-        $new_dice = Utility::rollDice();
+        Utility::rollDice();
+        $new_dice = DBAccesor::getDice();
         $this->globals->set(GL_WHITE_DICE_USED, false);
 
         // Notify all players about the dice roll
