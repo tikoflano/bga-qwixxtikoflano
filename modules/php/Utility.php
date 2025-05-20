@@ -34,9 +34,10 @@ class Utility {
         DBAccesor::setDice($dice);
     }
 
-    public static function notifyScore(int $player_id, callable $notify_fn) {
+    public static function updateAndNotifyScore(int $player_id, callable $notify_fn) {
         $score_per_color = DBAccesor::getScorePerColor($player_id);
         $total_score = array_reduce(array_values($score_per_color), fn($acc, $entry) => $acc + $entry["score"], 0);
+        $total_score -= DBAccesor::getPenaltyScore($player_id);
 
         DBAccesor::setPlayerScore($player_id, $total_score);
 

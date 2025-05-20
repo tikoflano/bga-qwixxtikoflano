@@ -94,6 +94,12 @@ class DBAccesor extends \Table {
         );
     }
 
+    public static function getPenaltyScore($player_id) {
+        return self::getUniqueValueFromDB(
+            "SELECT player_penalty_count * 5 as penalty_score FROM `player` WHERE player_id = $player_id"
+        );
+    }
+
     public static function getCompletedColors() {
         return self::getObjectListFromDB("SELECT DISTINCT color FROM `checkedboxes` WHERE position = 11", true);
     }

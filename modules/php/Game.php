@@ -133,7 +133,7 @@ class Game extends \Table {
             ]);
         }
 
-        Utility::notifyScore($player_id, [$this->notify, "all"]);
+        Utility::updateAndNotifyScore($player_id, [$this->notify, "all"]);
 
         if ($this->gamestate->state()["name"] == ST_USE_WHITE_SUM_NAME) {
             if ($player_id == $this->getActivePlayerId()) {
@@ -163,7 +163,7 @@ class Game extends \Table {
             "penalty_count" => $current_penalty_count + 1,
         ]);
 
-        Utility::notifyScore($player_id, [$this->notify, "all"]);
+        Utility::updateAndNotifyScore($player_id, [$this->notify, "all"]);
 
         $this->gamestate->nextState(TN_CHECK_PENALTY_BOX);
     }
