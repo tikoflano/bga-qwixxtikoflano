@@ -51,14 +51,14 @@ class Utility {
 
     public static function getDiceCombination($dice) {
         $response = [
-            DIE_WHITE_1 => [DIE_WHITE_2 => $dice[DIE_WHITE_1] + $dice[DIE_WHITE_2]],
-            DIE_WHITE_2 => [DIE_WHITE_1 => $dice[DIE_WHITE_1] + $dice[DIE_WHITE_2]],
+            DIE_WHITE_1 => [DIE_WHITE_2 => $dice[DIE_WHITE_1]["value"] + $dice[DIE_WHITE_2]["value"]],
+            DIE_WHITE_2 => [DIE_WHITE_1 => $dice[DIE_WHITE_1]["value"] + $dice[DIE_WHITE_2]["value"]],
         ];
 
         foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
             foreach ([DIE_RED, DIE_YELLOW, DIE_GREEN, DIE_BLUE] as $color) {
-                $value1 = $dice[$white];
-                $value2 = $dice[$color];
+                $value1 = $dice[$white]["value"];
+                $value2 = $dice[$color]["value"];
 
                 $response[$white][$color] = $value1 + $value2;
             }
@@ -115,6 +115,10 @@ class Utility {
             $sum = $dice[DIE_WHITE_1] + $dice[DIE_WHITE_2];
 
             foreach ([DIE_RED, DIE_YELLOW, DIE_GREEN, DIE_BLUE] as $color) {
+                if ($dice[$color]["in_play"] == 0) {
+                    continue;
+                }
+
                 $color_min_pos = 100;
                 foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
                     $sum = $dice_combinations[$white][$color];

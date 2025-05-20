@@ -104,6 +104,7 @@ class Game extends \Table {
         Validator::validatePositionValue($color, $position, $value);
         Validator::validateValue($this->gamestate->state()["name"], $color, $value);
         Validator::validatePosition($player_id, $color, $position);
+        Validator::validateDieIsInPlay($color);
 
         DBAccesor::setCheckedBox($player_id, $color, $position);
 

@@ -39,13 +39,8 @@ import {
 export type RowColor = "red" | "yellow" | "green" | "blue";
 export type WhiteDice = "white_1" | "white_2";
 export type DieColor = WhiteDice | RowColor;
-export type DiceValues = Record<DieColor, number>;
+export type DiceValues = Record<DieColor, { color: string; value: string; in_play: string }>;
 type RowValues = Record<RowColor, number>;
-type NumberMap = {
-  [key in RowColor]: {
-    [key in WhiteDice]: number;
-  };
-};
 
 interface PlayerData extends BGA.GamePlayer {
   penalty_count: number;

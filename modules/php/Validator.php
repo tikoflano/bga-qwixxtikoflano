@@ -13,20 +13,15 @@ class Validator {
 
     public static function validateValue(string $game_state, string $color, int $value) {
         $dice = DBAccesor::getDice();
+        $dice_combination = Utility::getDiceCombination($dice);
 
         if ($game_state == ST_USE_WHITE_SUM_NAME) {
-            $value1 = $dice[DIE_WHITE_1];
-            $value2 = $dice[DIE_WHITE_2];
-
-            if ($value == $value1 + $value2) {
+            if ($value == $dice_combination[DIE_WHITE_1][DIE_WHITE_1]) {
                 return;
             }
         } else {
             foreach ([DIE_WHITE_1, DIE_WHITE_2] as $white) {
-                $value1 = $dice[$color];
-                $value2 = $dice[$white];
-
-                if ($value == $value1 + $value2) {
+                if ($value == $dice_combination[$white][$color]) {
                     return;
                 }
             }
@@ -48,6 +43,14 @@ class Validator {
             if (!isset($checked_boxes[$color]) || count($checked_boxes[$color]) < 5) {
                 throw new BgaUserException(clienttranslate("Invalid move"));
             }
+        }
+    }
+
+    public static function validateDieIsInPlay(string $color) {
+        $die = DBAccesor::getDie($color);
+
+        if ($die["in_play"] != 1) {
+            throw new BgaUserException(clienttranslate("Invalid move: $color die is not in play"));
         }
     }
 }

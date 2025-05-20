@@ -80,7 +80,7 @@ class DBAccesor extends \Table {
     }
 
     public static function getDice() {
-        return self::getCollectionFromDB("SELECT color,value FROM dice", true);
+        return self::getCollectionFromDB("SELECT color,value,in_play FROM dice");
     }
 
     public static function getPlayerScore($player_id) {
@@ -96,6 +96,10 @@ class DBAccesor extends \Table {
 
     public static function getCompletedColors() {
         return self::getObjectListFromDB("SELECT DISTINCT color FROM `checkedboxes` WHERE position = 11", true);
+    }
+
+    public static function getDie($color) {
+        return self::getObjectListFromDB("SELECT color,value,in_play FROM dice WHERE color = '$color'")[0];
     }
 
     /**

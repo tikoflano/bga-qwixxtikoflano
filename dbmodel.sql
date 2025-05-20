@@ -2,7 +2,7 @@
 -- ------
 -- BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
 -- QwixxTikoflano implementation : © <Your name here> <Your email address here>
--- 
+--
 -- This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
 -- See http://en.boardgamearena.com/#!doc/Studio for more information.
 -- -----
@@ -36,9 +36,9 @@
 CREATE TABLE IF NOT EXISTS `dice` (
     `color` VARCHAR(10) NOT NULL,
     `value` SMALLINT unsigned NOT NULL,
+    `in_play` BIT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (`color`)
 ) ENGINE = InnoDB CHARSET = utf8;
-
 
 CREATE TABLE IF NOT EXISTS `checkedboxes` (
     `player_id` INT(10) unsigned NOT NULL,

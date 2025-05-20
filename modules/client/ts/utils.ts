@@ -77,7 +77,7 @@ export function objectEntries<T extends object>(obj: T): Entries<T> {
 }
 
 export function setDiceFaces(dice_values: DiceValues) {
-  for (const [color, value] of objectEntries(dice_values)) {
-    dojo.byId(`die_${color}`)!.dataset["value"] = `${value}`;
+  for (const [color, die_data] of objectEntries(dice_values)) {
+    dojo.byId(`die_${color}`)!.dataset["value"] = `${die_data["value"]}`;
   }
 }

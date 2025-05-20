@@ -113,8 +113,8 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
     }
     function setDiceFaces(dice_values) {
         for (var _i = 0, _a = objectEntries(dice_values); _i < _a.length; _i++) {
-            var _b = _a[_i], color = _b[0], value = _b[1];
-            dojo.byId("die_".concat(color)).dataset["value"] = "".concat(value);
+            var _b = _a[_i], color = _b[0], die_data = _b[1];
+            dojo.byId("die_".concat(color)).dataset["value"] = "".concat(die_data["value"]);
         }
     }
 });
