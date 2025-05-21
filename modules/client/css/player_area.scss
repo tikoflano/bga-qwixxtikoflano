@@ -53,6 +53,15 @@
       border-radius: 10px 10px 0px 0px;
     }
 
+    i {
+      margin-right: 5px;
+      display: none;
+    }
+
+    &.active_player i {
+      display: inline;
+    }
+
     .player_board {
       background-image: url(img/qwixx_board.jpeg);
       width: 500px;

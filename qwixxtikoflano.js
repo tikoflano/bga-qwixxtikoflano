@@ -191,7 +191,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
             for (player_id in gamedatas.players) {
                 var player = gamedatas.players[player_id];
                 var isCurrentPlayer = "".concat(this.player_id) == player_id;
-                var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\">").concat(player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
+                var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\"><i class=\"fa fa-star\"></i>").concat(player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
                 dojo.place(player_area_tpl, isCurrentPlayer ? this_player_area_id : other_players_area_id);
                 var player_board = (0, utils_2.getPlayerBoard)(player_id);
                 var colors = ["red", "yellow", "green", "blue"];
@@ -243,10 +243,20 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
             }
             var stateName = _a[0], state = _a[1];
             console.log("Entering state: " + stateName, state);
+            if (!["multipleactiveplayer", "activeplayer"].includes(state.type)) {
+                return;
+            }
+            var active_player_id = state.args["active_player"];
+            var active_player_area = dojo.query(".player_area[data-player-id=\"".concat(active_player_id, "\"]"));
+            if (!active_player_area.length) {
+                throw Error("Player area not found for player: ".concat(active_player_id));
+            }
+            active_player_area.addClass("active_player");
         };
         QwixxTikoflano.prototype.onLeavingState = function (stateName) {
             console.log("Leaving state: " + stateName);
             this.clearClickHandlers();
+            dojo.query(".active_player").removeClass("active_player");
         };
         QwixxTikoflano.prototype.onUpdateActionButtons = function () {
             var _a = [];

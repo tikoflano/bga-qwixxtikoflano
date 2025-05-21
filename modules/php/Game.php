@@ -69,7 +69,7 @@ class Game extends \Table {
             );
         }
 
-        return ["_private" => $private_args];
+        return ["_private" => $private_args, "active_player" => $this->getActivePlayerId()];
     }
 
     /**

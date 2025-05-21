@@ -50,6 +50,13 @@
   padding: 2px 50px;
   border-radius: 10px 10px 0px 0px;
 }
+#players_area #this_player_area .player_area i, #players_area #other_players_area .player_area i {
+  margin-right: 5px;
+  display: none;
+}
+#players_area #this_player_area .player_area.active_player i, #players_area #other_players_area .player_area.active_player i {
+  display: inline;
+}
 #players_area #this_player_area .player_area .player_board, #players_area #other_players_area .player_area .player_board {
   background-image: url(img/qwixx_board.jpeg);
   width: 500px;
@@ -206,6 +213,6 @@
 #dice_tray .die[data-color=white_2][data-value="6"] {
   background-position: 100% 100%;
 }
-#dice_tray .die[data-color=red] {
-  margin-left: 30px;
+#dice_tray .die[data-color=white_2] {
+  margin-right: 30px;
 }

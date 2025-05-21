@@ -92,7 +92,7 @@ export class QwixxTikoflano extends SetupGamegui {
       const isCurrentPlayer = `${this.player_id}` == player_id;
       const player_area_tpl = /* HTML */ `
         <div class="player_area" data-player-id="${player_id}">
-          <span class="player_name">${player.name}</span>
+          <span class="player_name"><i class="fa fa-star"></i>${player.name}</span>
           <div class="player_board"></div>
         </div>
       `;
@@ -205,6 +205,19 @@ export class QwixxTikoflano extends SetupGamegui {
   /** See {@link BGA.Gamegui#onEnteringState} for more information. */
   override onEnteringState(...[stateName, state]: BGA.GameStateTuple<["name", "state"]>): void {
     console.log("Entering state: " + stateName, state);
+
+    if (!["multipleactiveplayer", "activeplayer"].includes(state.type)) {
+      return;
+    }
+
+    const active_player_id = state.args["active_player"];
+    const active_player_area = dojo.query(`.player_area[data-player-id="${active_player_id}"]`);
+
+    if (!active_player_area.length) {
+      throw Error(`Player area not found for player: ${active_player_id}`);
+    }
+
+    active_player_area.addClass("active_player");
   }
 
   /** See {@link BGA.Gamegui#onLeavingState} for more information. */
@@ -212,6 +225,8 @@ export class QwixxTikoflano extends SetupGamegui {
     console.log("Leaving state: " + stateName);
 
     this.clearClickHandlers();
+
+    dojo.query(".active_player").removeClass("active_player");
   }
 
   /** See {@link BGA.Gamegui#onUpdateActionButtons} for more information. */
