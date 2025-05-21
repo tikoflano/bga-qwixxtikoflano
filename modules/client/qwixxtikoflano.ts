@@ -78,24 +78,18 @@ export class QwixxTikoflano extends SetupGamegui {
   override setup(gamedatas: BGA.Gamedatas): void {
     console.log("Starting game setup", gamedatas);
 
-    // Set up dice tray
-    const dice_tray = /*HTML*/ `
-        <div id="dice_tray">
-          <span id="die_white_1" class="die" data-value="1" data-color="white"></span>
-          <span id="die_white_2" class="die" data-value="2" data-color="white"></span>
-          <span id="die_red" class="die" data-value="3" data-color="red"></span>
-          <span id="die_yellow" class="die" data-value="4" data-color="yellow"></span>
-          <span id="die_green" class="die" data-value="5" data-color="green"></span>
-          <span id="die_blue" class="die" data-value="6" data-color="blue"></span>
-        </div>
-      `;
-    dojo.place(dice_tray, "game_play_area", "first");
-
     // Setting up player boards
+    const players_area_id = "players_area";
+    const other_players_area_id = "other_players_area";
+    const this_player_area_id = "this_player_area";
+    dojo.place(`<div id="${players_area_id}"></div>`, "game_play_area", "last");
+    dojo.place(`<div id="${this_player_area_id}"></div>`, players_area_id, "last");
+    dojo.place(`<div id="${other_players_area_id}"></div>`, players_area_id, "last");
+
     let player_id: BGA.ID;
     for (player_id in gamedatas.players) {
       const player = gamedatas.players[player_id]!;
-      const isCurrentPlayer = this.player_id == player_id;
+      const isCurrentPlayer = `${this.player_id}` == player_id;
       const player_area_tpl = /* HTML */ `
         <div class="player_area" data-player-id="${player_id}">
           <span class="player_name">${player.name}</span>
@@ -103,15 +97,22 @@ export class QwixxTikoflano extends SetupGamegui {
         </div>
       `;
 
-      dojo.place(player_area_tpl, "game_play_area", isCurrentPlayer ? 2 : "last");
+      dojo.place(player_area_tpl, isCurrentPlayer ? this_player_area_id : other_players_area_id);
       const player_board = getPlayerBoard(player_id);
 
       // Set up boxes
       const colors: RowColor[] = ["red", "yellow", "green", "blue"];
       for (let i = 0; i < colors.length; i++) {
-        const top = 15 + 51 * i;
+        let top = 9 + 30.5 * i;
+        if (isCurrentPlayer) {
+          top = 15 + 51 * i;
+        }
+
         for (let x = 2; x <= 12; x++) {
-          const left = 26 + 39 * (x - 2);
+          let left = 16 + 23.3 * (x - 2);
+          if (isCurrentPlayer) {
+            left = 26 + 39 * (x - 2);
+          }
 
           const cell_number = isLTRRow(colors[i]!) ? x : 14 - x;
 
@@ -135,7 +136,7 @@ export class QwixxTikoflano extends SetupGamegui {
             data-color="${colors[i]}"
             data-position="11"
             data-value="lock"
-            style="top: ${top + 5}px;"
+            style="top: ${top + (isCurrentPlayer ? 5 : 3)}px;"
           ></div>`,
           player_board,
         );
@@ -143,12 +144,32 @@ export class QwixxTikoflano extends SetupGamegui {
 
       // Add penalty boxes
       for (let i = 0; i < 4; i++) {
+        let left = 231 + 12.5 * i;
+        if (isCurrentPlayer) {
+          left = 387 + 20 * i;
+        }
+
         dojo.place(
-          /* HTML */ `<div class="box penalty" data-position="${i}" style="left: ${387 + 20 * i}px;"></div>`,
+          /* HTML */ `<div class="box penalty" data-position="${i}" style="left: ${left}px;"></div>`,
           player_board,
         );
       }
     }
+
+    // Set up dice tray
+    const dice_tray = /*HTML*/ `
+        <div id="dice_tray">
+            <div id="die_results">
+                <span class="die" data-value="1" data-color="white_1"></span>
+                <span class="die" data-value="2" data-color="white_2"></span>
+                <span class="die" data-value="3" data-color="red"></span>
+                <span class="die" data-value="4" data-color="yellow"></span>
+                <span class="die" data-value="5" data-color="green"></span>
+                <span class="die" data-value="6" data-color="blue"></span>
+            </div>
+        </div>
+      `;
+    dojo.place(dice_tray, this_player_area_id);
 
     // TODO: Set up your game interface here, according to "gamedatas"
     // Set dice faces

@@ -13,44 +13,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define("ts/userActionsHandlers", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.onCheckBox = onCheckBox;
-    exports.onCheckPenaltyBox = onCheckPenaltyBox;
-    exports.onPass = onPass;
-    function onCheckBox(evt) {
-        evt.preventDefault();
-        evt.stopPropagation();
-        if (!(evt.currentTarget instanceof HTMLElement)) {
-            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
-        }
-        if (!evt.currentTarget.classList.contains("clickable")) {
-            return;
-        }
-        var _a = evt.currentTarget.dataset, color = _a.color, position = _a.position, value = _a.value;
-        this.bgaPerformAction("actCheckBox", { color: color, position: position, value: value });
-    }
-    function onCheckPenaltyBox(evt) {
-        evt.preventDefault();
-        evt.stopPropagation();
-        if (!(evt.currentTarget instanceof HTMLElement)) {
-            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
-        }
-        if (!evt.currentTarget.classList.contains("clickable")) {
-            return;
-        }
-        this.bgaPerformAction("actCheckPenaltyBox", {});
-    }
-    function onPass(evt) {
-        evt.preventDefault();
-        evt.stopPropagation();
-        if (!(evt.currentTarget instanceof HTMLElement)) {
-            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
-        }
-        this.bgaPerformAction("actPass", {});
-    }
-});
 define("ts/utils", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -96,8 +58,8 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
         return penaltyBox;
     }
     function getDiceSum(die1_color, die2_color) {
-        var die1 = dojo.byId("die_".concat(die1_color));
-        var die2 = dojo.byId("die_".concat(die2_color));
+        var die1 = dojo.query(".die[data-color=\"".concat(die1_color, "\"]"))[0];
+        var die2 = dojo.query(".die[data-color=\"".concat(die2_color, "\"]"))[0];
         if (!die1 || !die2) {
             throw Error("Die not found!");
         }
@@ -114,7 +76,7 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
     function setDiceFaces(dice_values) {
         for (var _i = 0, _a = objectEntries(dice_values); _i < _a.length; _i++) {
             var _b = _a[_i], color = _b[0], die_data = _b[1];
-            var node = dojo.byId("die_".concat(color));
+            var node = dojo.query(".die[data-color=\"".concat(color, "\"]"))[0];
             if (die_data["in_play"] === "1") {
                 if (!node) {
                     throw Error("Die element not found: ".concat(color));
@@ -127,6 +89,44 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
                 }
             }
         }
+    }
+});
+define("ts/userActionsHandlers", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.onCheckBox = onCheckBox;
+    exports.onCheckPenaltyBox = onCheckPenaltyBox;
+    exports.onPass = onPass;
+    function onCheckBox(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (!(evt.currentTarget instanceof HTMLElement)) {
+            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
+        }
+        if (!evt.currentTarget.classList.contains("clickable")) {
+            return;
+        }
+        var _a = evt.currentTarget.dataset, color = _a.color, position = _a.position, value = _a.value;
+        this.bgaPerformAction("actCheckBox", { color: color, position: position, value: value });
+    }
+    function onCheckPenaltyBox(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (!(evt.currentTarget instanceof HTMLElement)) {
+            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
+        }
+        if (!evt.currentTarget.classList.contains("clickable")) {
+            return;
+        }
+        this.bgaPerformAction("actCheckPenaltyBox", {});
+    }
+    function onPass(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (!(evt.currentTarget instanceof HTMLElement)) {
+            throw new Error("evt.currentTarget is null! Make sure that this function is being connected to a DOM HTMLElement.");
+        }
+        this.bgaPerformAction("actPass", {});
     }
 });
 define("ts/notificationsHandlers", ["require", "exports", "ts/utils"], function (require, exports, utils_1) {
@@ -181,29 +181,45 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
         }
         QwixxTikoflano.prototype.setup = function (gamedatas) {
             console.log("Starting game setup", gamedatas);
-            var dice_tray = "\n        <div id=\"dice_tray\">\n          <span id=\"die_white_1\" class=\"die\" data-value=\"1\" data-color=\"white\"></span>\n          <span id=\"die_white_2\" class=\"die\" data-value=\"2\" data-color=\"white\"></span>\n          <span id=\"die_red\" class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n          <span id=\"die_yellow\" class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n          <span id=\"die_green\" class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n          <span id=\"die_blue\" class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n        </div>\n      ";
-            dojo.place(dice_tray, "game_play_area", "first");
+            var players_area_id = "players_area";
+            var other_players_area_id = "other_players_area";
+            var this_player_area_id = "this_player_area";
+            dojo.place("<div id=\"".concat(players_area_id, "\"></div>"), "game_play_area", "last");
+            dojo.place("<div id=\"".concat(this_player_area_id, "\"></div>"), players_area_id, "last");
+            dojo.place("<div id=\"".concat(other_players_area_id, "\"></div>"), players_area_id, "last");
             var player_id;
             for (player_id in gamedatas.players) {
                 var player = gamedatas.players[player_id];
-                var isCurrentPlayer = this.player_id == player_id;
+                var isCurrentPlayer = "".concat(this.player_id) == player_id;
                 var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\">").concat(player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
-                dojo.place(player_area_tpl, "game_play_area", isCurrentPlayer ? 2 : "last");
+                dojo.place(player_area_tpl, isCurrentPlayer ? this_player_area_id : other_players_area_id);
                 var player_board = (0, utils_2.getPlayerBoard)(player_id);
                 var colors = ["red", "yellow", "green", "blue"];
                 for (var i = 0; i < colors.length; i++) {
-                    var top_1 = 15 + 51 * i;
+                    var top_1 = 9 + 30.5 * i;
+                    if (isCurrentPlayer) {
+                        top_1 = 15 + 51 * i;
+                    }
                     for (var x = 2; x <= 12; x++) {
-                        var left = 26 + 39 * (x - 2);
+                        var left = 16 + 23.3 * (x - 2);
+                        if (isCurrentPlayer) {
+                            left = 26 + 39 * (x - 2);
+                        }
                         var cell_number = (0, utils_2.isLTRRow)(colors[i]) ? x : 14 - x;
                         dojo.place("\n              <div\n                class=\"box\"\n                data-color=\"".concat(colors[i], "\"\n                data-position=\"").concat(x - 2, "\"\n                data-value=\"").concat(cell_number, "\"\n                style=\"left: ").concat(left, "px; top: ").concat(top_1, "px;\"\n              ></div>\n            "), player_board);
                     }
-                    dojo.place("<div\n            class=\"box lock\"\n            data-color=\"".concat(colors[i], "\"\n            data-position=\"11\"\n            data-value=\"lock\"\n            style=\"top: ").concat(top_1 + 5, "px;\"\n          ></div>"), player_board);
+                    dojo.place("<div\n            class=\"box lock\"\n            data-color=\"".concat(colors[i], "\"\n            data-position=\"11\"\n            data-value=\"lock\"\n            style=\"top: ").concat(top_1 + (isCurrentPlayer ? 5 : 3), "px;\"\n          ></div>"), player_board);
                 }
                 for (var i = 0; i < 4; i++) {
-                    dojo.place("<div class=\"box penalty\" data-position=\"".concat(i, "\" style=\"left: ").concat(387 + 20 * i, "px;\"></div>"), player_board);
+                    var left = 231 + 12.5 * i;
+                    if (isCurrentPlayer) {
+                        left = 387 + 20 * i;
+                    }
+                    dojo.place("<div class=\"box penalty\" data-position=\"".concat(i, "\" style=\"left: ").concat(left, "px;\"></div>"), player_board);
                 }
             }
+            var dice_tray = "\n        <div id=\"dice_tray\">\n            <div id=\"die_results\">\n                <span class=\"die\" data-value=\"1\" data-color=\"white_1\"></span>\n                <span class=\"die\" data-value=\"2\" data-color=\"white_2\"></span>\n                <span class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n                <span class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n                <span class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n                <span class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n            </div>\n        </div>\n      ";
+            dojo.place(dice_tray, this_player_area_id);
             (0, utils_2.setDiceFaces)(gamedatas["dice"]);
             for (var _i = 0, _a = gamedatas["checkedBoxes"]; _i < _a.length; _i++) {
                 var checkedBox = _a[_i];

@@ -8,47 +8,80 @@
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  */
-.player_area {
+#players_area {
+  display: flex;
+  flex-direction: column;
+}
+#players_area #other_players_area {
+  display: flex;
+  margin-top: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 15px;
+}
+#players_area #other_players_area .player_area .player_board:not(#\9 ) {
+  width: 300px;
+  height: 152px;
+}
+#players_area #other_players_area .player_area .player_board:not(#\9 ) .box {
+  height: 21px;
+  width: 21px;
+  border-radius: 4px;
+}
+#players_area #other_players_area .player_area .player_board:not(#\9 ) .box.penalty {
+  top: 139px;
+  width: 9px;
+  height: 10px;
+}
+#players_area #other_players_area .player_area .player_board:not(#\9 ) .box.lock {
+  left: 275px;
+  top: 20px;
+  width: 15px;
+  height: 15px;
+  border-radius: 100%;
+}
+
+#players_area #this_player_area .player_area, #players_area #other_players_area .player_area {
   float: left;
   margin-right: 50px;
 }
-.player_area .player_name {
+#players_area #this_player_area .player_area .player_name, #players_area #other_players_area .player_area .player_name {
   background: #dddddf;
   padding: 2px 50px;
   border-radius: 10px 10px 0px 0px;
 }
-.player_area .player_board {
+#players_area #this_player_area .player_area .player_board, #players_area #other_players_area .player_area .player_board {
   background-image: url(img/qwixx_board.jpeg);
   width: 500px;
   height: 254px;
   position: relative;
   background-size: cover;
 }
-.player_area .player_board .box {
+#players_area #this_player_area .player_area .player_board .box, #players_area #other_players_area .player_area .player_board .box {
   position: absolute;
   border-radius: 7px;
   height: 38px;
   width: 38px;
 }
-.player_area .player_board .box.penalty {
+#players_area #this_player_area .player_area .player_board .box.penalty, #players_area #other_players_area .player_area .player_board .box.penalty {
   top: 233px;
   width: 17px;
   height: 18px;
 }
-.player_area .player_board .box.clickable {
+#players_area #this_player_area .player_area .player_board .box.clickable, #players_area #other_players_area .player_area .player_board .box.clickable {
   cursor: pointer;
   background: #ddd;
   opacity: 0.7;
   box-shadow: inset 0 0 10px #319eb6;
 }
-.player_area .player_board .box.lock {
+#players_area #this_player_area .player_area .player_board .box.lock, #players_area #other_players_area .player_area .player_board .box.lock {
   left: 460px;
   top: 20px;
   width: 27px;
   height: 27px;
   border-radius: 100%;
 }
-.player_area .player_board .box.crossed {
+#players_area #this_player_area .player_area .player_board .box.crossed, #players_area #other_players_area .player_area .player_board .box.crossed {
   background-image: url(img/cross.png);
   background-size: cover;
 }
@@ -137,25 +170,42 @@
 #dice_tray .die[data-color=blue][data-value="6"] {
   background-position: 100% 60%;
 }
-#dice_tray .die[data-color=white][data-value="1"] {
+#dice_tray .die[data-color=white_1][data-value="1"] {
   background-position: 0% 100%;
 }
-#dice_tray .die[data-color=white][data-value="2"] {
+#dice_tray .die[data-color=white_1][data-value="2"] {
   background-position: 20% 100%;
 }
-#dice_tray .die[data-color=white][data-value="3"] {
+#dice_tray .die[data-color=white_1][data-value="3"] {
   background-position: 40% 100%;
 }
-#dice_tray .die[data-color=white][data-value="4"] {
+#dice_tray .die[data-color=white_1][data-value="4"] {
   background-position: 60% 100%;
 }
-#dice_tray .die[data-color=white][data-value="5"] {
+#dice_tray .die[data-color=white_1][data-value="5"] {
   background-position: 80% 100%;
 }
-#dice_tray .die[data-color=white][data-value="6"] {
+#dice_tray .die[data-color=white_1][data-value="6"] {
   background-position: 100% 100%;
 }
-
-.debug {
-  border: 1px solid cyan;
+#dice_tray .die[data-color=white_2][data-value="1"] {
+  background-position: 0% 100%;
+}
+#dice_tray .die[data-color=white_2][data-value="2"] {
+  background-position: 20% 100%;
+}
+#dice_tray .die[data-color=white_2][data-value="3"] {
+  background-position: 40% 100%;
+}
+#dice_tray .die[data-color=white_2][data-value="4"] {
+  background-position: 60% 100%;
+}
+#dice_tray .die[data-color=white_2][data-value="5"] {
+  background-position: 80% 100%;
+}
+#dice_tray .die[data-color=white_2][data-value="6"] {
+  background-position: 100% 100%;
+}
+#dice_tray .die[data-color=red] {
+  margin-left: 30px;
 }

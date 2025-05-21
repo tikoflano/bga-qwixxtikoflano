@@ -1,7 +1,6 @@
 // This file needs to be imported by the mainfile, otherwise it won't recognize the BGA namespace
 
-import { type QwixxTikoflano, RowColor, type DieColor, type DiceValues } from "../qwixxtikoflano";
-import { onCheckBox } from "./userActionsHandlers";
+import { RowColor, type DieColor, type DiceValues } from "../qwixxtikoflano";
 
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
@@ -54,8 +53,8 @@ export function getPenaltyBox(player_id: BGA.ID, position: number) {
 }
 
 export function getDiceSum(die1_color: DieColor, die2_color: DieColor) {
-  const die1 = dojo.byId(`die_${die1_color}`);
-  const die2 = dojo.byId(`die_${die2_color}`);
+  const die1 = dojo.query<HTMLElement>(`.die[data-color="${die1_color}"]`)[0];
+  const die2 = dojo.query<HTMLElement>(`.die[data-color="${die2_color}"]`)[0];
 
   if (!die1 || !die2) {
     throw Error("Die not found!");
@@ -78,7 +77,7 @@ export function objectEntries<T extends object>(obj: T): Entries<T> {
 
 export function setDiceFaces(dice_values: DiceValues) {
   for (const [color, die_data] of objectEntries(dice_values)) {
-    const node = dojo.byId(`die_${color}`);
+    const node = dojo.query<HTMLElement>(`.die[data-color="${color}"]`)[0];
 
     if (die_data["in_play"] === "1") {
       if (!node) {
