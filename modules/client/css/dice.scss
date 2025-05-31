@@ -89,7 +89,7 @@
           &[data-color="yellow"] {
             background-color: #f9facf;
             border-color: #966601;
-            color: #f7cb12;
+            color: #a18200;
           }
 
           &[data-color="green"] {
@@ -107,7 +107,7 @@
       }
 
       #this_player_area:not(.active_player) &:not(#dice_combinations_white) {
-        visibility: hidden;
+        opacity: 50%;
       }
     }
 

@@ -274,7 +274,7 @@
 #dice_tray #dice_combinations_wrapper .dice_combinations .dice_combination .result[data-color=yellow] {
   background-color: #f9facf;
   border-color: #966601;
-  color: #f7cb12;
+  color: #a18200;
 }
 #dice_tray #dice_combinations_wrapper .dice_combinations .dice_combination .result[data-color=green] {
   background-color: #ebfae7;
@@ -287,7 +287,7 @@
   border-color: #144172;
 }
 #this_player_area:not(.active_player) #dice_tray #dice_combinations_wrapper .dice_combinations:not(#dice_combinations_white) {
-  visibility: hidden;
+  opacity: 50%;
 }
 #dice_tray #dice_combinations_wrapper .die {
   width: 32px;
