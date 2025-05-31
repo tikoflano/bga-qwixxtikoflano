@@ -98,6 +98,10 @@ class Utility {
             $sum = $dice_combinations[DIE_WHITE_1][DIE_WHITE_2];
 
             foreach ([DIE_RED, DIE_YELLOW, DIE_GREEN, DIE_BLUE] as $color) {
+                if ($dice[$color]["in_play"] == 0) {
+                    continue;
+                }
+
                 $sum_position = self::valueToPosition($color, $sum);
                 $latest_checked_position = ($checked_boxes[$color] ?? [-1])[0];
                 $count_checked_boxes = count($checked_boxes[$color] ?? []);
