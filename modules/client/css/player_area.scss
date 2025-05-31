@@ -4,6 +4,10 @@
 
   #this_player_area {
     @extend %player_area;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
   #other_players_area {
@@ -44,7 +48,6 @@
 
 %player_area {
   .player_area {
-    float: left;
     margin-right: 50px;
 
     .player_name {

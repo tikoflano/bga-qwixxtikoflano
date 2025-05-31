@@ -1,5 +1,8 @@
 #dice_tray {
-  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+  align-items: center;
 
   .die {
     $dieSpritePositons: (
@@ -26,9 +29,90 @@
         }
       }
     }
+  }
 
-    &[data-color="white_2"] {
+  #dice_results {
+    margin-top: 18px;
+
+    .die[data-color="white_2"] {
       margin-right: 30px;
+    }
+  }
+
+  .divider {
+    height: 13px;
+  }
+
+  #dice_combinations_wrapper {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 1rem;
+    background-color: rgb(255 255 255 / 50%);
+    border: 2px solid #656565;
+    border-radius: 5px;
+    column-gap: 2rem;
+
+    .dice_combinations {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      row-gap: 0.2rem;
+
+      .dice_combination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .plus,
+        .equals {
+          margin: 0 5px;
+        }
+
+        .result {
+          display: flex;
+          height: 0.25rem;
+          width: 0.25rem;
+          padding: 0.6rem;
+          align-items: center;
+          justify-content: center;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+          border: 2px solid #666;
+          font-weight: 600;
+
+          &[data-color="red"] {
+            background-color: #fdcccf;
+            border-color: #7f0000;
+            color: #de1314;
+          }
+
+          &[data-color="yellow"] {
+            background-color: #f9facf;
+            border-color: #966601;
+            color: #f7cb12;
+          }
+
+          &[data-color="green"] {
+            background-color: #ebfae7;
+            border-color: #0f6409;
+            color: #45a111;
+          }
+
+          &[data-color="blue"] {
+            background-color: #ddddf9;
+            color: #3f709f;
+            border-color: #144172;
+          }
+        }
+      }
+
+      #this_player_area:not(.active_player) &:not(#dice_combinations_white) {
+        visibility: hidden;
+      }
+    }
+
+    .die {
+      width: 32px;
     }
   }
 }

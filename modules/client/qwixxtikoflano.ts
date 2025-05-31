@@ -39,6 +39,10 @@ export type RowColor = "red" | "yellow" | "green" | "blue";
 export type WhiteDice = "white_1" | "white_2";
 export type DieColor = WhiteDice | RowColor;
 export type DiceValues = Record<DieColor, { color: string; value: string; in_play: string }>;
+export interface DiceCombinations {
+  white_1: { [key in Exclude<DieColor, "white_1">]: number };
+  white_2: { [key in Exclude<DieColor, "white_2">]: number };
+}
 type RowValues = Record<RowColor, number>;
 
 interface PlayerData extends BGA.GamePlayer {
@@ -157,18 +161,20 @@ export class QwixxTikoflano extends SetupGamegui {
     }
 
     // Set up dice tray
-    const dice_tray = /*HTML*/ `
-        <div id="dice_tray">
-            <div id="die_results">
-                <span class="die" data-value="1" data-color="white_1"></span>
-                <span class="die" data-value="2" data-color="white_2"></span>
-                <span class="die" data-value="3" data-color="red"></span>
-                <span class="die" data-value="4" data-color="yellow"></span>
-                <span class="die" data-value="5" data-color="green"></span>
-                <span class="die" data-value="6" data-color="blue"></span>
-            </div>
+    const dice_tray = /* HTML */ `
+      <div id="dice_tray">
+        <div id="dice_results">
+          <span class="die" data-value="1" data-color="white_1"></span>
+          <span class="die" data-value="2" data-color="white_2"></span>
+          <span class="die" data-value="3" data-color="red"></span>
+          <span class="die" data-value="4" data-color="yellow"></span>
+          <span class="die" data-value="5" data-color="green"></span>
+          <span class="die" data-value="6" data-color="blue"></span>
         </div>
-      `;
+        <div class="divider"></div>
+        <div id="dice_combinations_wrapper"></div>
+      </div>
+    `;
     dojo.place(dice_tray, this_player_area_id);
 
     // TODO: Set up your game interface here, according to "gamedatas"
@@ -218,6 +224,10 @@ export class QwixxTikoflano extends SetupGamegui {
     }
 
     active_player_area.addClass("active_player");
+
+    if (`${active_player_id}` === `${this.player_id}`) {
+      dojo.addClass("this_player_area", "active_player");
+    }
   }
 
   /** See {@link BGA.Gamegui#onLeavingState} for more information. */

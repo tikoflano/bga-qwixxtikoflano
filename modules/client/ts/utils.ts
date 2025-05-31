@@ -1,6 +1,6 @@
 // This file needs to be imported by the mainfile, otherwise it won't recognize the BGA namespace
 
-import { RowColor, type DieColor, type DiceValues } from "../qwixxtikoflano";
+import { RowColor, type DieColor, type DiceValues, WhiteDice } from "../qwixxtikoflano";
 
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
@@ -88,6 +88,55 @@ export function setDiceFaces(dice_values: DiceValues) {
       if (node) {
         dojo.destroy(node);
       }
+    }
+  }
+
+  setDiceCombinations(dice_values);
+}
+
+function setDiceCombinations(dice_values: DiceValues) {
+  dojo.empty(`dice_combinations_wrapper`);
+
+  dojo.place(
+    /* HTML */
+    `<div id="dice_combinations_white" class="dice_combinations">
+      <div class="dice_combination">
+        <span class="die" data-value="${dice_values["white_1"]["value"]}" data-color="white_1"></span>
+        <span class="plus"> + </span>
+        <span class="die" data-value="${dice_values["white_2"]["value"]}" data-color="white_2"></span>
+        <span class="equals"> = </span>
+        <span class="result" data-color="white">
+          ${parseInt(dice_values["white_1"]["value"]) + parseInt(dice_values["white_2"]["value"])}</span
+        >
+      </div>
+    </div>`,
+    `dice_combinations_wrapper`,
+  );
+
+  for (const white_die of ["white_1", "white_2"] as WhiteDice[]) {
+    dojo.place(
+      /* HTML */
+      `<div id="dice_combinations_${white_die}" class="dice_combinations"></div>`,
+      `dice_combinations_wrapper`,
+    );
+    for (const color_die of ["red", "yellow", "green", "blue"] as RowColor[]) {
+      if (dice_values[color_die]["in_play"] !== "1") {
+        continue;
+      }
+
+      dojo.place(
+        /* HTML */
+        `<div class="dice_combination">
+          <span class="die" data-value="${dice_values[white_die]["value"]}" data-color="${white_die}"></span>
+          <span class="plus"> + </span>
+          <span class="die" data-value="${dice_values[color_die]["value"]}" data-color="${color_die}"></span>
+          <span class="equals"> = </span>
+          <span class="result" data-color="${color_die}">
+            ${parseInt(dice_values[white_die]["value"]) + parseInt(dice_values[color_die]["value"])}</span
+          >
+        </div>`,
+        `dice_combinations_${white_die}`,
+      );
     }
   }
 }

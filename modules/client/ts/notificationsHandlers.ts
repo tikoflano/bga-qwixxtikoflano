@@ -1,5 +1,5 @@
 import { setDiceFaces } from "./utils";
-import { RowColor, type QwixxTikoflano } from "../qwixxtikoflano";
+import { type QwixxTikoflano } from "../qwixxtikoflano";
 
 export function ntf_boxCheckedHandler(this: QwixxTikoflano, notif: BGA.Notif) {
   this.markCheckedBox(notif.args!["player_id"], notif.args!["color"], notif.args!["position"]);

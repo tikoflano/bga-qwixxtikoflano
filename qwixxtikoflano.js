@@ -89,6 +89,22 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
                 }
             }
         }
+        setDiceCombinations(dice_values);
+    }
+    function setDiceCombinations(dice_values) {
+        dojo.empty("dice_combinations_wrapper");
+        dojo.place("<div id=\"dice_combinations_white\" class=\"dice_combinations\">\n      <div class=\"dice_combination\">\n        <span class=\"die\" data-value=\"".concat(dice_values["white_1"]["value"], "\" data-color=\"white_1\"></span>\n        <span class=\"plus\"> + </span>\n        <span class=\"die\" data-value=\"").concat(dice_values["white_2"]["value"], "\" data-color=\"white_2\"></span>\n        <span class=\"equals\"> = </span>\n        <span class=\"result\" data-color=\"white\">\n          ").concat(parseInt(dice_values["white_1"]["value"]) + parseInt(dice_values["white_2"]["value"]), "</span\n        >\n      </div>\n    </div>"), "dice_combinations_wrapper");
+        for (var _i = 0, _a = ["white_1", "white_2"]; _i < _a.length; _i++) {
+            var white_die = _a[_i];
+            dojo.place("<div id=\"dice_combinations_".concat(white_die, "\" class=\"dice_combinations\"></div>"), "dice_combinations_wrapper");
+            for (var _b = 0, _c = ["red", "yellow", "green", "blue"]; _b < _c.length; _b++) {
+                var color_die = _c[_b];
+                if (dice_values[color_die]["in_play"] !== "1") {
+                    continue;
+                }
+                dojo.place("<div class=\"dice_combination\">\n          <span class=\"die\" data-value=\"".concat(dice_values[white_die]["value"], "\" data-color=\"").concat(white_die, "\"></span>\n          <span class=\"plus\"> + </span>\n          <span class=\"die\" data-value=\"").concat(dice_values[color_die]["value"], "\" data-color=\"").concat(color_die, "\"></span>\n          <span class=\"equals\"> = </span>\n          <span class=\"result\" data-color=\"").concat(color_die, "\">\n            ").concat(parseInt(dice_values[white_die]["value"]) + parseInt(dice_values[color_die]["value"]), "</span\n          >\n        </div>"), "dice_combinations_".concat(white_die));
+            }
+        }
     }
 });
 define("ts/userActionsHandlers", ["require", "exports"], function (require, exports) {
@@ -218,7 +234,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                     dojo.place("<div class=\"box penalty\" data-position=\"".concat(i, "\" style=\"left: ").concat(left, "px;\"></div>"), player_board);
                 }
             }
-            var dice_tray = "\n        <div id=\"dice_tray\">\n            <div id=\"die_results\">\n                <span class=\"die\" data-value=\"1\" data-color=\"white_1\"></span>\n                <span class=\"die\" data-value=\"2\" data-color=\"white_2\"></span>\n                <span class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n                <span class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n                <span class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n                <span class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n            </div>\n        </div>\n      ";
+            var dice_tray = "\n      <div id=\"dice_tray\">\n        <div id=\"dice_results\">\n          <span class=\"die\" data-value=\"1\" data-color=\"white_1\"></span>\n          <span class=\"die\" data-value=\"2\" data-color=\"white_2\"></span>\n          <span class=\"die\" data-value=\"3\" data-color=\"red\"></span>\n          <span class=\"die\" data-value=\"4\" data-color=\"yellow\"></span>\n          <span class=\"die\" data-value=\"5\" data-color=\"green\"></span>\n          <span class=\"die\" data-value=\"6\" data-color=\"blue\"></span>\n        </div>\n        <div class=\"divider\"></div>\n        <div id=\"dice_combinations_wrapper\"></div>\n      </div>\n    ";
             dojo.place(dice_tray, this_player_area_id);
             (0, utils_2.setDiceFaces)(gamedatas["dice"]);
             for (var _i = 0, _a = gamedatas["checkedBoxes"]; _i < _a.length; _i++) {
@@ -252,6 +268,9 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                 throw Error("Player area not found for player: ".concat(active_player_id));
             }
             active_player_area.addClass("active_player");
+            if ("".concat(active_player_id) === "".concat(this.player_id)) {
+                dojo.addClass("this_player_area", "active_player");
+            }
         };
         QwixxTikoflano.prototype.onLeavingState = function (stateName) {
             console.log("Leaving state: " + stateName);
