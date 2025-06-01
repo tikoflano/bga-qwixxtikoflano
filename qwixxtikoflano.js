@@ -287,6 +287,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
             var stateName = _a[0], args = _a[1];
             console.log("onUpdateActionButtons: " + stateName, args);
             if (!this.isCurrentPlayerActive() || !args["_private"]) {
+                this.clearClickHandlers();
                 return;
             }
             if (["useWhiteSum", "mustUseColorSum", "mayUseColorSum"].includes(stateName)) {

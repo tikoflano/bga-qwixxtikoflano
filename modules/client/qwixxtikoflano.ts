@@ -258,6 +258,7 @@ export class QwixxTikoflano extends SetupGamegui {
     // This cannot be handled on onEnteringState as player are not active yet in a multipleactiveplayer state
     // Ref: https://en.doc.boardgamearena.com/Game_interface_logic:_yourgamename.js#File_structure
     if (!this.isCurrentPlayerActive() || !args["_private"]) {
+      this.clearClickHandlers();
       return;
     }
 
