@@ -1,0 +1,17 @@
+@use "utils";
+
+.player_panel {
+  display: flex;
+  column-gap: 1px;
+  justify-content: center;
+  margin-top: 10px;
+
+  .box_counter {
+    @extend %circle_number;
+    border-radius: 15%;
+
+    &::after {
+      content: attr(data-value, "0");
+    }
+  }
+}

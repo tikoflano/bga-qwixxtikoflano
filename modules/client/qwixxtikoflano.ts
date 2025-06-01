@@ -102,6 +102,18 @@ export class QwixxTikoflano extends SetupGamegui {
       `;
 
       dojo.place(player_area_tpl, isCurrentPlayer ? this_player_area_id : other_players_area_id);
+
+      const player_panel_tpl = /* HTML */ `
+        <div class="player_panel" data-player-id="${player_id}">
+          <span class="box_counter" data-color="red" data-value="0"></span>
+          <span class="box_counter" data-color="yellow" data-value="0"></span>
+          <span class="box_counter" data-color="green" data-value="0"></span>
+          <span class="box_counter" data-color="blue" data-value="0"></span>
+        </div>
+      `;
+
+      dojo.place(player_panel_tpl, this.getPlayerPanelElement(player_id)!, "last");
+
       const player_board = getPlayerBoard(player_id);
 
       // Set up boxes
@@ -293,6 +305,17 @@ export class QwixxTikoflano extends SetupGamegui {
   markCheckedBox(player_id: BGA.ID, color: RowColor, position: number) {
     const box = getBoxByPosition(player_id, color, position);
     dojo.addClass(box, "crossed");
+
+    const box_counter = dojo.query<HTMLElement>(
+      `.player_panel .box_counter[data-color="${color}"]`,
+      this.getPlayerPanelElement(player_id)!,
+    )[0];
+
+    if (!box_counter) {
+      throw Error("Box counter not found!");
+    }
+
+    box_counter.dataset["value"] = `${parseInt(box_counter.dataset["value"]!) + 1}`;
 
     if (player_id == this.player_id) {
       this.max_checked_box_position[color] = Math.max(this.max_checked_box_position[color], position);

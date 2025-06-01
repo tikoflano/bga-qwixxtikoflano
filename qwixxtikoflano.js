@@ -209,6 +209,8 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                 var isCurrentPlayer = "".concat(this.player_id) == player_id;
                 var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\"><i class=\"fa fa-star\"></i>").concat(player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
                 dojo.place(player_area_tpl, isCurrentPlayer ? this_player_area_id : other_players_area_id);
+                var player_panel_tpl = "\n        <div class=\"player_panel\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"box_counter\" data-color=\"red\" data-value=\"0\"></span>\n          <span class=\"box_counter\" data-color=\"yellow\" data-value=\"0\"></span>\n          <span class=\"box_counter\" data-color=\"green\" data-value=\"0\"></span>\n          <span class=\"box_counter\" data-color=\"blue\" data-value=\"0\"></span>\n        </div>\n      ");
+                dojo.place(player_panel_tpl, this.getPlayerPanelElement(player_id), "last");
                 var player_board = (0, utils_2.getPlayerBoard)(player_id);
                 var colors = ["red", "yellow", "green", "blue"];
                 for (var i = 0; i < colors.length; i++) {
@@ -320,6 +322,11 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
         QwixxTikoflano.prototype.markCheckedBox = function (player_id, color, position) {
             var box = (0, utils_2.getBoxByPosition)(player_id, color, position);
             dojo.addClass(box, "crossed");
+            var box_counter = dojo.query(".player_panel .box_counter[data-color=\"".concat(color, "\"]"), this.getPlayerPanelElement(player_id))[0];
+            if (!box_counter) {
+                throw Error("Box counter not found!");
+            }
+            box_counter.dataset["value"] = "".concat(parseInt(box_counter.dataset["value"]) + 1);
             if (player_id == this.player_id) {
                 this.max_checked_box_position[color] = Math.max(this.max_checked_box_position[color], position);
             }
