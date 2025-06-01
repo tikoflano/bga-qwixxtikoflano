@@ -173,7 +173,9 @@ class DBAccesor extends \Table {
         self::DbQuery("UPDATE player SET player_score='$new_score' WHERE player_id='$player_id'");
     }
 
-    public static function setDiceOutOfPlay($color) {
-        self::DbQuery("UPDATE dice SET in_play = 0 WHERE color='$color'");
+    public static function setDiceOutOfPlay() {
+        self::DbQuery(
+            "UPDATE checkedboxes C LEFT JOIN dice D ON C.color = D.color SET D.in_play = 0 WHERE C.position = 11 AND D.in_play = 1"
+        );
     }
 }
