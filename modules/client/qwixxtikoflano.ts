@@ -105,10 +105,10 @@ export class QwixxTikoflano extends SetupGamegui {
 
       const player_panel_tpl = /* HTML */ `
         <div class="player_panel" data-player-id="${player_id}">
-          <span class="box_counter" data-color="red" data-value="0"></span>
-          <span class="box_counter" data-color="yellow" data-value="0"></span>
-          <span class="box_counter" data-color="green" data-value="0"></span>
-          <span class="box_counter" data-color="blue" data-value="0"></span>
+          <span class="box_number" data-color="red" data-value="0"></span>
+          <span class="box_number" data-color="yellow" data-value="0"></span>
+          <span class="box_number" data-color="green" data-value="0"></span>
+          <span class="box_number" data-color="blue" data-value="0"></span>
         </div>
       `;
 
@@ -308,7 +308,7 @@ export class QwixxTikoflano extends SetupGamegui {
     dojo.addClass(box, "crossed");
 
     const box_counter = dojo.query<HTMLElement>(
-      `.player_panel .box_counter[data-color="${color}"]`,
+      `.player_panel .box_number[data-color="${color}"]`,
       this.getPlayerPanelElement(player_id)!,
     )[0];
 

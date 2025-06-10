@@ -8,6 +8,42 @@
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  */
+.box_number {
+  display: flex;
+  height: 0.25rem;
+  width: 0.25rem;
+  padding: 0.6rem;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1/1;
+  border-radius: 15%;
+  border: 2px solid #666;
+  font-weight: 600;
+}
+.box_number[data-color=red] {
+  background-color: #fdcccf;
+  border-color: #7f0000;
+  color: #de1314;
+}
+.box_number[data-color=yellow] {
+  background-color: #f9facf;
+  border-color: #966601;
+  color: #a18200;
+}
+.box_number[data-color=green] {
+  background-color: #ebfae7;
+  border-color: #0f6409;
+  color: #45a111;
+}
+.box_number[data-color=blue] {
+  background-color: #ddddf9;
+  color: #3f709f;
+  border-color: #144172;
+}
+.box_number::after {
+  content: attr(data-value, "0");
+}
+
 #players_area {
   display: flex;
   flex-direction: column;
@@ -98,50 +134,11 @@
   background-size: cover;
 }
 
-#dice_tray #dice_combinations_wrapper .dice_combinations .dice_combination .result, .player_panel .box_counter {
-  display: flex;
-  height: 0.25rem;
-  width: 0.25rem;
-  padding: 0.6rem;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1/1;
-  border-radius: 50%;
-  border: 2px solid #666;
-  font-weight: 600;
-}
-#dice_tray #dice_combinations_wrapper .dice_combinations .dice_combination [data-color=red].result, .player_panel [data-color=red].box_counter {
-  background-color: #fdcccf;
-  border-color: #7f0000;
-  color: #de1314;
-}
-#dice_tray #dice_combinations_wrapper .dice_combinations .dice_combination [data-color=yellow].result, .player_panel [data-color=yellow].box_counter {
-  background-color: #f9facf;
-  border-color: #966601;
-  color: #a18200;
-}
-#dice_tray #dice_combinations_wrapper .dice_combinations .dice_combination [data-color=green].result, .player_panel [data-color=green].box_counter {
-  background-color: #ebfae7;
-  border-color: #0f6409;
-  color: #45a111;
-}
-#dice_tray #dice_combinations_wrapper .dice_combinations .dice_combination [data-color=blue].result, .player_panel [data-color=blue].box_counter {
-  background-color: #ddddf9;
-  color: #3f709f;
-  border-color: #144172;
-}
-
 .player_panel {
   display: flex;
   column-gap: 1px;
   justify-content: center;
   margin-top: 10px;
-}
-.player_panel .box_counter {
-  border-radius: 15%;
-}
-.player_panel .box_counter::after {
-  content: attr(data-value, "0");
 }
 
 #dice_tray {
@@ -305,4 +302,11 @@
 }
 #dice_tray #dice_combinations_wrapper .die {
   width: 32px;
+}
+
+#logs .box_number {
+  display: inline;
+  padding: 0.1rem 0.3rem;
+  border-width: 1px;
+  margin-left: 0.1rem;
 }

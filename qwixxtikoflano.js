@@ -93,7 +93,7 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
     }
     function setDiceCombinations(dice_values) {
         dojo.empty("dice_combinations_wrapper");
-        dojo.place("<div id=\"dice_combinations_white\" class=\"dice_combinations\">\n      <div class=\"dice_combination\">\n        <span class=\"die\" data-value=\"".concat(dice_values["white_1"]["value"], "\" data-color=\"white_1\"></span>\n        <span class=\"plus\"> + </span>\n        <span class=\"die\" data-value=\"").concat(dice_values["white_2"]["value"], "\" data-color=\"white_2\"></span>\n        <span class=\"equals\"> = </span>\n        <span class=\"result\" data-color=\"white\">\n          ").concat(parseInt(dice_values["white_1"]["value"]) + parseInt(dice_values["white_2"]["value"]), "</span\n        >\n      </div>\n    </div>"), "dice_combinations_wrapper");
+        dojo.place("<div id=\"dice_combinations_white\" class=\"dice_combinations\">\n      <div class=\"dice_combination\">\n        <span class=\"die\" data-value=\"".concat(dice_values["white_1"]["value"], "\" data-color=\"white_1\"></span>\n        <span class=\"plus\"> + </span>\n        <span class=\"die\" data-value=\"").concat(dice_values["white_2"]["value"], "\" data-color=\"white_2\"></span>\n        <span class=\"equals\"> = </span>\n        <span\n          class=\"box_number\"\n          data-color=\"white\"\n          data-value=\"").concat(parseInt(dice_values["white_1"]["value"]) + parseInt(dice_values["white_2"]["value"]), "\"\n        >\n        </span>\n      </div>\n    </div>"), "dice_combinations_wrapper");
         for (var _i = 0, _a = ["white_1", "white_2"]; _i < _a.length; _i++) {
             var white_die = _a[_i];
             dojo.place("<div id=\"dice_combinations_".concat(white_die, "\" class=\"dice_combinations\"></div>"), "dice_combinations_wrapper");
@@ -102,7 +102,7 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
                 if (dice_values[color_die]["in_play"] !== "1") {
                     continue;
                 }
-                dojo.place("<div class=\"dice_combination\">\n          <span class=\"die\" data-value=\"".concat(dice_values[white_die]["value"], "\" data-color=\"").concat(white_die, "\"></span>\n          <span class=\"plus\"> + </span>\n          <span class=\"die\" data-value=\"").concat(dice_values[color_die]["value"], "\" data-color=\"").concat(color_die, "\"></span>\n          <span class=\"equals\"> = </span>\n          <span class=\"result\" data-color=\"").concat(color_die, "\">\n            ").concat(parseInt(dice_values[white_die]["value"]) + parseInt(dice_values[color_die]["value"]), "</span\n          >\n        </div>"), "dice_combinations_".concat(white_die));
+                dojo.place("<div class=\"dice_combination\">\n          <span class=\"die\" data-value=\"".concat(dice_values[white_die]["value"], "\" data-color=\"").concat(white_die, "\"></span>\n          <span class=\"plus\"> + </span>\n          <span class=\"die\" data-value=\"").concat(dice_values[color_die]["value"], "\" data-color=\"").concat(color_die, "\"></span>\n          <span class=\"equals\"> = </span>\n          <span\n            class=\"box_number\"\n            data-color=\"").concat(color_die, "\"\n            data-value=\" ").concat(parseInt(dice_values[white_die]["value"]) + parseInt(dice_values[color_die]["value"]), "\"\n          >\n          </span>\n        </div>"), "dice_combinations_".concat(white_die));
             }
         }
     }
@@ -209,7 +209,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                 var isCurrentPlayer = "".concat(this.player_id) == player_id;
                 var player_area_tpl = "\n        <div class=\"player_area\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"player_name\"><i class=\"fa fa-star\"></i>").concat(player.name, "</span>\n          <div class=\"player_board\"></div>\n        </div>\n      ");
                 dojo.place(player_area_tpl, isCurrentPlayer ? this_player_area_id : other_players_area_id);
-                var player_panel_tpl = "\n        <div class=\"player_panel\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"box_counter\" data-color=\"red\" data-value=\"0\"></span>\n          <span class=\"box_counter\" data-color=\"yellow\" data-value=\"0\"></span>\n          <span class=\"box_counter\" data-color=\"green\" data-value=\"0\"></span>\n          <span class=\"box_counter\" data-color=\"blue\" data-value=\"0\"></span>\n        </div>\n      ");
+                var player_panel_tpl = "\n        <div class=\"player_panel\" data-player-id=\"".concat(player_id, "\">\n          <span class=\"box_number\" data-color=\"red\" data-value=\"0\"></span>\n          <span class=\"box_number\" data-color=\"yellow\" data-value=\"0\"></span>\n          <span class=\"box_number\" data-color=\"green\" data-value=\"0\"></span>\n          <span class=\"box_number\" data-color=\"blue\" data-value=\"0\"></span>\n        </div>\n      ");
                 dojo.place(player_panel_tpl, this.getPlayerPanelElement(player_id), "last");
                 var player_board = (0, utils_2.getPlayerBoard)(player_id);
                 var colors = ["red", "yellow", "green", "blue"];
@@ -323,7 +323,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
         QwixxTikoflano.prototype.markCheckedBox = function (player_id, color, position) {
             var box = (0, utils_2.getBoxByPosition)(player_id, color, position);
             dojo.addClass(box, "crossed");
-            var box_counter = dojo.query(".player_panel .box_counter[data-color=\"".concat(color, "\"]"), this.getPlayerPanelElement(player_id))[0];
+            var box_counter = dojo.query(".player_panel .box_number[data-color=\"".concat(color, "\"]"), this.getPlayerPanelElement(player_id))[0];
             if (!box_counter) {
                 throw Error("Box counter not found!");
             }

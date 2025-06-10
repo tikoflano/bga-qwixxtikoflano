@@ -111,7 +111,9 @@ class Game extends \Table {
         // Notify all players about the checked box
         $this->notify->all(
             NT_BOX_CHECKED,
-            clienttranslate('${player_name} has checked the number ${value} from the ${color} row'),
+            clienttranslate(
+                '${player_name} has crossed out <span class="box_number" data-color="${color}" data-value="${value}"></span>'
+            ),
             [
                 "player_id" => $player_id,
                 "color" => $color,

@@ -105,9 +105,12 @@ function setDiceCombinations(dice_values: DiceValues) {
         <span class="plus"> + </span>
         <span class="die" data-value="${dice_values["white_2"]["value"]}" data-color="white_2"></span>
         <span class="equals"> = </span>
-        <span class="result" data-color="white">
-          ${parseInt(dice_values["white_1"]["value"]) + parseInt(dice_values["white_2"]["value"])}</span
+        <span
+          class="box_number"
+          data-color="white"
+          data-value="${parseInt(dice_values["white_1"]["value"]) + parseInt(dice_values["white_2"]["value"])}"
         >
+        </span>
       </div>
     </div>`,
     `dice_combinations_wrapper`,
@@ -131,9 +134,12 @@ function setDiceCombinations(dice_values: DiceValues) {
           <span class="plus"> + </span>
           <span class="die" data-value="${dice_values[color_die]["value"]}" data-color="${color_die}"></span>
           <span class="equals"> = </span>
-          <span class="result" data-color="${color_die}">
-            ${parseInt(dice_values[white_die]["value"]) + parseInt(dice_values[color_die]["value"])}</span
+          <span
+            class="box_number"
+            data-color="${color_die}"
+            data-value=" ${parseInt(dice_values[white_die]["value"]) + parseInt(dice_values[color_die]["value"])}"
           >
+          </span>
         </div>`,
         `dice_combinations_${white_die}`,
       );
