@@ -170,6 +170,12 @@ class Game extends \Table {
     }
 
     private function transitionAfterWhiteDice($player_id) {
+        // Check if we have 2 or more completed rows
+        if (count(DBAccesor::getCompletedColors()) > 1) {
+            $this->gamestate->setPlayerNonMultiactive($player_id, TN_END_GAME);
+            return;
+        }
+
         $transition = TN_PASS;
         if ($this->globals->get(GL_WHITE_DICE_USED, false)) {
             $transition = TN_CHECK_BOX;

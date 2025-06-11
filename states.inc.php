@@ -73,6 +73,7 @@ $machinestates = [
             TN_CHECK_BOX => ST_MAY_USE_COLOR_SUM,
             TN_PASS => ST_MUST_USE_COLOR_SUM,
             TN_ZOMBIE_PASS => ST_NEXT_PLAYER,
+            TN_END_GAME => ST_END_GAME,
         ],
     ],
 
