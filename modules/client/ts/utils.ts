@@ -5,7 +5,7 @@ import { RowColor, type DieColor, type DiceValues, WhiteDice } from "../qwixxtik
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
 
-export function isLTRRow(color: RowColor) {
+export function isIncreasingColor(color: RowColor) {
   return ["red", "yellow"].includes(color);
 }
 

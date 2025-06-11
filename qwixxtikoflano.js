@@ -16,7 +16,7 @@ var __extends = (this && this.__extends) || (function () {
 define("ts/utils", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isLTRRow = isLTRRow;
+    exports.isIncreasingColor = isIncreasingColor;
     exports.getPlayerBoard = getPlayerBoard;
     exports.getBoxBy = getBoxBy;
     exports.getBoxByPosition = getBoxByPosition;
@@ -25,7 +25,7 @@ define("ts/utils", ["require", "exports"], function (require, exports) {
     exports.getDiceSum = getDiceSum;
     exports.objectEntries = objectEntries;
     exports.setDiceFaces = setDiceFaces;
-    function isLTRRow(color) {
+    function isIncreasingColor(color) {
         return ["red", "yellow"].includes(color);
     }
     function getPlayerBoard(player_id) {
@@ -223,7 +223,7 @@ define("bgagame/qwixxtikoflano", ["require", "exports", "ebg/core/gamegui", "ts/
                         if (isCurrentPlayer) {
                             left = 26 + 39 * (x - 2);
                         }
-                        var cell_number = (0, utils_2.isLTRRow)(colors[i]) ? x : 14 - x;
+                        var cell_number = (0, utils_2.isIncreasingColor)(colors[i]) ? x : 14 - x;
                         dojo.place("\n              <div\n                class=\"box\"\n                data-color=\"".concat(colors[i], "\"\n                data-position=\"").concat(x - 2, "\"\n                data-value=\"").concat(cell_number, "\"\n                style=\"left: ").concat(left, "px; top: ").concat(top_1, "px;\"\n              ></div>\n            "), player_board);
                     }
                     dojo.place("<div\n            class=\"box lock\"\n            data-color=\"".concat(colors[i], "\"\n            data-position=\"11\"\n            data-value=\"lock\"\n            style=\"top: ").concat(top_1 + (isCurrentPlayer ? 5 : 3), "px;\"\n          ></div>"), player_board);

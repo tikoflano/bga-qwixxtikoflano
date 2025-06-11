@@ -21,7 +21,7 @@ import "ebg/counter";
 import {
   getPlayerBoard,
   getBoxByPosition,
-  isLTRRow,
+  isIncreasingColor,
   objectEntries,
   setDiceFaces,
   getBoxByValue,
@@ -130,7 +130,7 @@ export class QwixxTikoflano extends SetupGamegui {
             left = 26 + 39 * (x - 2);
           }
 
-          const cell_number = isLTRRow(colors[i]!) ? x : 14 - x;
+          const cell_number = isIncreasingColor(colors[i]!) ? x : 14 - x;
 
           dojo.place(
             /* HTML */ `
