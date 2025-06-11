@@ -1,1 +1,66 @@
-{}
+{
+  "table": {
+    "total_boxes_crossed": {
+      "id": 10,
+      "name": "Total boxes crossed",
+      "type": "int"
+    }
+  },
+  "player": {
+    "total_boxes_crossed": {
+      "id": 10,
+      "name": "Total boxes crossed",
+      "type": "int"
+    },
+    "red_boxes_crossed": {
+      "id": 11,
+      "name": "Red boxes crossed",
+      "type": "int"
+    },
+    "yellow_boxes_crossed": {
+      "id": 12,
+      "name": "Yellow boxes crossed",
+      "type": "int"
+    },
+    "green_boxes_crossed": {
+      "id": 13,
+      "name": "Green boxes crossed",
+      "type": "int"
+    },
+    "blue_boxes_crossed": {
+      "id": 14,
+      "name": "Blue boxes crossed",
+      "type": "int"
+    },
+    "other_turn_boxes_crossed": {
+      "id": 15,
+      "name": "Boxes crossed on other turns",
+      "type": "int"
+    },
+    "highest_red_crossed": {
+      "id": 16,
+      "name": "Highest red number crossed",
+      "type": "int"
+    },
+    "highest_yellow_crossed": {
+      "id": 17,
+      "name": "Highest yellow number crossed",
+      "type": "int"
+    },
+    "lowest_green_crossed": {
+      "id": 18,
+      "name": "Lowest green number crossed",
+      "type": "int"
+    },
+    "lowest_blue_crossed": {
+      "id": 19,
+      "name": "Lowest blue number crossed",
+      "type": "int"
+    },
+    "penalty_boxes_crossed": {
+      "id": 20,
+      "name": "Penalty boxes crossed",
+      "type": "int"
+    }
+  }
+}

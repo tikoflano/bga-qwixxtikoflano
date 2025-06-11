@@ -108,6 +108,31 @@ class Game extends \Table {
 
         DBAccesor::setCheckedBox($player_id, $color, $position);
 
+        // Update statistics
+        $this->incStat(1, "total_boxes_crossed", $player_id);
+        $this->incStat(1, "total_boxes_crossed");
+        $this->incStat(1, "{$color}_boxes_crossed", $player_id);
+
+        // Update highest/lowest number crossed for this color
+        if (Utility::isIncreasingColor($color)) {
+            // For red and yellow, track highest number
+            $current_highest = $this->getStat("highest_{$color}_crossed", $player_id);
+            if ($current_highest === null || $value > $current_highest) {
+                $this->setStat($value, "highest_{$color}_crossed", $player_id);
+            }
+        } else {
+            // For green and blue, track lowest number
+            $current_lowest = $this->getStat("lowest_{$color}_crossed", $player_id);
+            if ($current_lowest === null || $value < $current_lowest) {
+                $this->setStat($value, "lowest_{$color}_crossed", $player_id);
+            }
+        }
+
+        // If this is not the active player's turn, increment the "other turn" stat
+        if ($player_id != $this->getActivePlayerId()) {
+            $this->incStat(1, "other_turn_boxes_crossed", $player_id);
+        }
+
         // Notify all players about the checked box
         $this->notify->all(
             NT_BOX_CHECKED,
@@ -125,6 +150,11 @@ class Game extends \Table {
         // If checking the last number, also check the lock. The die will be removed on the nextPlayer state
         if ($position == 10) {
             DBAccesor::setCheckedBox($player_id, $color, 11);
+
+            // Increment statistics for the free lock
+            $this->incStat(1, "total_boxes_crossed", $player_id);
+            $this->incStat(1, "total_boxes_crossed");
+            $this->incStat(1, "{$color}_boxes_crossed", $player_id);
 
             // Notify all players about the checked lock
             $this->notify->all(NT_BOX_CHECKED, clienttranslate('${player_name} has completed the ${color} row'), [
@@ -157,6 +187,9 @@ class Game extends \Table {
         }
 
         DBAccesor::increasePlayerPenalty($player_id);
+
+        // Update statistics
+        $this->incStat(1, "penalty_boxes_crossed", $player_id);
 
         // Notify all players about the player penalty check
         $this->notify->all(NT_PENALTY_BOX_CHECKED, clienttranslate('${player_name} checks a penalty box'), [
@@ -339,12 +372,17 @@ class Game extends \Table {
         // Init global values with their initial values.
 
         // Init game statistics.
-        //
-        // NOTE: statistics used in this file must be defined in your `stats.inc.php` file.
+        $this->initStat("table", "total_boxes_crossed", 0);
 
-        // Dummy content.
-        // $this->initStat("table", "table_teststat1", 0);
-        // $this->initStat("player", "player_teststat1", 0);
+        foreach ($players as $player_id => $player) {
+            $this->initStat("player", "total_boxes_crossed", 0, $player_id);
+            $this->initStat("player", "red_boxes_crossed", 0, $player_id);
+            $this->initStat("player", "yellow_boxes_crossed", 0, $player_id);
+            $this->initStat("player", "green_boxes_crossed", 0, $player_id);
+            $this->initStat("player", "blue_boxes_crossed", 0, $player_id);
+            $this->initStat("player", "other_turn_boxes_crossed", 0, $player_id);
+            $this->initStat("player", "penalty_boxes_crossed", 0, $player_id);
+        }
 
         // TODO: Setup the initial game situation here.
         Utility::rollDice();
