@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+This project uses the newest versions of the BGA Studio framewrok, so anytime there is a decision to be made between using an old way to do things or a new one, you should use the latest recommended way.
