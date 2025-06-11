@@ -64,7 +64,7 @@ $machinestates = [
     ST_USE_WHITE_SUM => [
         "name" => ST_USE_WHITE_SUM_NAME,
         "description" => clienttranslate("Waiting for other players"),
-        "descriptionmyturn" => clienttranslate('${you} may check a box based on the white die'),
+        "descriptionmyturn" => clienttranslate('${you} can cross a number using the sum of the white dice'),
         "type" => "multipleactiveplayer",
         "args" => "argValidModes",
         "action" => "stMakeEveryoneActive",
@@ -79,8 +79,12 @@ $machinestates = [
 
     ST_MUST_USE_COLOR_SUM => [
         "name" => ST_MUST_USE_COLOR_SUM_NAME,
-        "description" => clienttranslate('${actplayer} must check a number box or a penalty box'),
-        "descriptionmyturn" => clienttranslate('${you} must check a number box or a penalty box'),
+        "description" => clienttranslate(
+            '${actplayer} must cross a number using a color die and a white die, or take a penalty'
+        ),
+        "descriptionmyturn" => clienttranslate(
+            '${you} must cross a number using a color die and a white die, or take a penalty'
+        ),
         "type" => "activeplayer",
         "args" => "argValidModes",
         "possibleactions" => [ACT_CHECK_BOX, ACT_CHECK_PENALTY_BOX],
@@ -93,8 +97,8 @@ $machinestates = [
 
     ST_MAY_USE_COLOR_SUM => [
         "name" => ST_MAY_USE_COLOR_SUM_NAME,
-        "description" => clienttranslate('${actplayer} may check a number box or pass'),
-        "descriptionmyturn" => clienttranslate('${you} may check a number box or pass'),
+        "description" => clienttranslate('${actplayer} can cross a number using a color die and a white die'),
+        "descriptionmyturn" => clienttranslate('${you} can cross a number using a color die and a white die'),
         "type" => "activeplayer",
         "args" => "argValidModes",
         "possibleactions" => [ACT_PASS, ACT_CHECK_BOX, ACT_CHECK_PENALTY_BOX],
